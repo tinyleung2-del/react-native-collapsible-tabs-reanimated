@@ -3,12 +3,14 @@ import { useCallback } from "react";
 import { StatusBar } from "expo-status-bar";
 import { ListRenderItemInfo, StyleSheet, Text, View } from "react-native";
 import CollapsibleTabs from "react-native-collapsible-tabs-reanimated";
+import { CollapsibleFlashList } from "react-native-collapsible-tabs-reanimated/flash-list";
+import type { ListRenderItemInfo as FlashListRenderItemInfo } from "@shopify/flash-list";
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-const TAB_COUNT = 3;
+const TAB_COUNT = 4;
 
 type StickyRecord =
   | { id: string; type: "header"; title: string }
@@ -148,16 +150,22 @@ const stickyRecords: StickyRecord[] = [
   },
 ];
 
-const stickyHeaderIndices = stickyRecords.reduce<number[]>((indices, item, index) => {
-  if (item.type === "header") indices.push(index);
-  return indices;
-}, []);
+const stickyHeaderIndices = stickyRecords.reduce<number[]>(
+  (indices, item, index) => {
+    if (item.type === "header") indices.push(index);
+    return indices;
+  },
+  [],
+);
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const frame = useSafeAreaFrame();
 
-  const keyExtractor = useCallback((_: string, index: number) => String(index), []);
+  const keyExtractor = useCallback(
+    (_: string, index: number) => String(index),
+    [],
+  );
 
   const stickyKeyExtractor = useCallback((item: StickyRecord) => item.id, []);
 
@@ -171,22 +179,52 @@ export default function HomeScreen() {
     [],
   );
 
-  const renderStickyItem = useCallback(({ item }: ListRenderItemInfo<StickyRecord>) => {
-    if (item.type === "header") {
+  const renderStickyItem = useCallback(
+    ({ item }: ListRenderItemInfo<StickyRecord>) => {
+      if (item.type === "header") {
+        return (
+          <View style={styles.stickySectionHeader}>
+            <Text style={styles.stickySectionTitle}>{item.title}</Text>
+          </View>
+        );
+      }
+
       return (
-        <View style={styles.stickySectionHeader}>
-          <Text style={styles.stickySectionTitle}>{item.title}</Text>
+        <View style={styles.stickyItemRow}>
+          <Text style={styles.stickyItemTitle}>{item.title}</Text>
+          <Text style={styles.stickyItemText}>{item.text}</Text>
         </View>
       );
-    }
+    },
+    [],
+  );
 
-    return (
-      <View style={styles.stickyItemRow}>
-        <Text style={styles.stickyItemTitle}>{item.title}</Text>
-        <Text style={styles.stickyItemText}>{item.text}</Text>
-      </View>
-    );
-  }, []);
+  const flashKeyExtractor = useCallback((item: StickyRecord) => item.id, []);
+
+  const renderFlashStickyItem = useCallback(
+    ({ item, index, target }: FlashListRenderItemInfo<StickyRecord>) => {
+      if (item.type === "header") {
+        return (
+          <View style={[styles.flashSectionHeader, target === "StickyHeader" && styles.flashSectionHeaderPinned]}>
+            <Text style={styles.flashSectionTitle}>{item.title}</Text>
+          </View>
+        );
+      }
+
+      return (
+        <View style={styles.flashRow}>
+          <View style={styles.flashBadge}>
+            <Text style={styles.flashBadgeText}>{index + 1}</Text>
+          </View>
+          <View style={styles.flashRowContent}>
+            <Text style={styles.flashRowTitle}>{item.title}</Text>
+            <Text style={styles.flashRowText}>{item.text}</Text>
+          </View>
+        </View>
+      );
+    },
+    [],
+  );
 
   return (
     <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
@@ -197,7 +235,7 @@ export default function HomeScreen() {
         initialStaticHeight={176}
         initialStickyHeight={56}
       >
-        <CollapsibleTabs.Header>
+        <CollapsibleTabs.Header style={{ backgroundColor: "#172554" }}>
           <CollapsibleTabs.StaticHeader
             style={[styles.hero, { paddingBottom: insets.top }]}
           >
@@ -244,6 +282,15 @@ export default function HomeScreen() {
               >
                 Sticky
               </CollapsibleTabs.Button>
+              <CollapsibleTabs.Button
+                index={3}
+                name="FlashList"
+                fullWidth
+                activeLabelColor="#101828"
+                inactiveLabelColor="#98a2b3"
+              >
+                FlashList
+              </CollapsibleTabs.Button>
               <CollapsibleTabs.MaterialIndicator color="#2563eb" />
             </CollapsibleTabs.Bar>
           </CollapsibleTabs.StickyHeader>
@@ -288,6 +335,24 @@ export default function HomeScreen() {
               renderItem={renderStickyItem}
               stickyHeaderIndices={stickyHeaderIndices}
               contentContainerStyle={styles.stickyListContent}
+            />
+          </CollapsibleTabs.Tab>
+
+          <CollapsibleTabs.Tab index={3} lazy={false}>
+            <CollapsibleFlashList
+              data={stickyRecords}
+              keyExtractor={flashKeyExtractor}
+              renderItem={renderFlashStickyItem}
+              stickyHeaderIndices={stickyHeaderIndices}
+              contentContainerStyle={styles.stickyListContent}
+              ListHeaderComponent={
+                <View style={styles.panelHeader}>
+                  <Text style={styles.panelTitle}>FlashList sticky headers</Text>
+                  <Text style={styles.panelSubtitle}>
+                    Powered by @shopify/flash-list via CollapsibleFlashList.
+                  </Text>
+                </View>
+              }
             />
           </CollapsibleTabs.Tab>
         </CollapsibleTabs.Pager>
@@ -377,7 +442,13 @@ const styles = StyleSheet.create({
     color: "#101828",
     fontSize: 20,
     fontWeight: "800",
-    marginBottom: 12,
+    marginBottom: 4,
+  },
+  panelSubtitle: {
+    color: "#667085",
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 8,
   },
   detailRow: {
     flexDirection: "row",
@@ -436,5 +507,60 @@ const styles = StyleSheet.create({
     color: "#475467",
     fontSize: 14,
     lineHeight: 21,
+  },
+  flashSectionHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: "#eef2ff",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#c7d2fe",
+  },
+  flashSectionHeaderPinned: {
+    backgroundColor: "#e0e7ff",
+  },
+  flashSectionTitle: {
+    color: "#4338ca",
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  flashRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#e4e7ec",
+  },
+  flashBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#eef2ff",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  flashBadgeText: {
+    color: "#4f46e5",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  flashRowContent: {
+    flex: 1,
+  },
+  flashRowTitle: {
+    color: "#101828",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  flashRowText: {
+    marginTop: 4,
+    color: "#667085",
+    fontSize: 13,
+    lineHeight: 19,
   },
 });

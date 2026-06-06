@@ -93,12 +93,9 @@ const ScrollView = ({
         <Animated.ScrollView
           ref={scrollRef}
           scrollEventThrottle={16}
-          bounces={false}
           showsVerticalScrollIndicator
           directionalLockEnabled
           keyboardShouldPersistTaps="handled"
-          overScrollMode="never"
-          scrollToOverflowEnabled={false}
           {...props}
           // onScroll={onScroll as RNScrollViewProps["onScroll"]}
           onScroll={composedScrollEvent}

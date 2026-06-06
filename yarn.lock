@@ -2216,6 +2216,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@legendapp/list@npm:latest":
+  version: 3.0.2
+  resolution: "@legendapp/list@npm:3.0.2"
+  dependencies:
+    use-sync-external-store: "npm:^1.5.0"
+  peerDependencies:
+    react: "*"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 10c0/764b07165e63c781ccf41d59f113227a011ea6783a7eb73ba1c2ae19fa7190493117d12232fefe3b9f7dfb097e9d2956eddd28cfb618542619c781b524e0765d
+  languageName: node
+  linkType: hard
+
 "@msgpackr-extract/msgpackr-extract-darwin-arm64@npm:3.0.4":
   version: 3.0.4
   resolution: "@msgpackr-extract/msgpackr-extract-darwin-arm64@npm:3.0.4"
@@ -2907,7 +2923,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shopify/flash-list@npm:latest":
+"@shopify/flash-list@npm:^2.3.1, @shopify/flash-list@npm:latest":
   version: 2.3.1
   resolution: "@shopify/flash-list@npm:2.3.1"
   peerDependencies:
@@ -5084,6 +5100,7 @@ __metadata:
   dependencies:
     "@babel/core": "npm:latest"
     "@react-native/metro-config": "npm:latest"
+    "@shopify/flash-list": "npm:^2.3.1"
     "@types/react": "npm:~19.2.2"
     eslint: "npm:^9.0.0"
     eslint-config-expo: "npm:~56.0.4"
@@ -8104,6 +8121,7 @@ __metadata:
   dependencies:
     "@babel/core": "npm:latest"
     "@babel/runtime": "npm:latest"
+    "@legendapp/list": "npm:latest"
     "@react-native/babel-preset": "npm:latest"
     "@react-native/metro-config": "npm:latest"
     "@react-native/typescript-config": "npm:latest"
@@ -8119,6 +8137,7 @@ __metadata:
     rimraf: "npm:latest"
     typescript: "npm:latest"
   peerDependencies:
+    "@legendapp/list": ">=3.0.0"
     "@shopify/flash-list": ">=2.0.0"
     react: ">=18"
     react-native: ">=0.72"
@@ -8127,6 +8146,8 @@ __metadata:
     react-native-reanimated: ">=4.0.0"
     react-native-worklets: ">=0.6.0"
   peerDependenciesMeta:
+    "@legendapp/list":
+      optional: true
     "@shopify/flash-list":
       optional: true
   languageName: unknown
@@ -9739,6 +9760,15 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10c0/161599bf921cfaa41c85d2b01c871975ee99260f3e874c2d41c05890d41170297bdcf314bc5185e7a700de2034ac5b888e3efc8e9f35724f4918f53538d717c9
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.5.0":
+  version: 1.6.0
+  resolution: "use-sync-external-store@npm:1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/35e1179f872a53227bdf8a827f7911da4c37c0f4091c29b76b1e32473d1670ebe7bcd880b808b7549ba9a5605c233350f800ffab963ee4a4ee346ee983b6019b
   languageName: node
   linkType: hard
 

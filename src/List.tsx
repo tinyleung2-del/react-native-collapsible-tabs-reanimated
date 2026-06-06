@@ -96,7 +96,6 @@ const List = <T,>({
           showsVerticalScrollIndicator
           directionalLockEnabled
           keyboardShouldPersistTaps="handled"
-          scrollToOverflowEnabled={false}
           {...props}
           onScroll={composedScrollEvent}
           onLayout={handleLayout}
