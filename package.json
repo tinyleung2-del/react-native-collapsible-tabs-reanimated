@@ -31,9 +31,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/leungwensen/react-native-collapsible-tabs-reanimated.git"
+    "url": "git+https://github.com/leungtinyau27m5/react-native-collapsible-tabs-reanimated.git"
   },
-  "author": "leungtinyau27m5 (https://github.com/leungtinyau27m5)",
+  "author": "tinyleung2-del (https://github.com/tinyleung2-del)",
   "license": "MIT",
   "peerDependencies": {
     "react": ">=18",
