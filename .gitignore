@@ -5,3 +5,9 @@ lib
 yarn-error.log
 npm-debug.log
 pnpm-debug.log
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.jks
