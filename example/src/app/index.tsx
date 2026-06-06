@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import CollapsibleTabs from "react-native-collapsible-tabs-reanimated";
@@ -80,27 +82,23 @@ const details = [
   "The scroll views register a scroller with the root for active-tab scroll-to-top behavior.",
   "The active tab offset is synchronized whenever the selected page changes.",
   "Pager swipes should remain horizontal while vertical movement is handled by the scroll view and header.",
-  "Pull down at the top of a tab to reveal the full header.",
-  "Scroll up to collapse the static header and keep the tab bar pinned.",
-  "Swipe horizontally to switch tabs without losing each tab scroll offset.",
-  "The new component mirrors List defaults: no bounce, handled keyboard taps, and overflow disabled.",
-  "Both tabs below are backed by CollapsibleTabs.ScrollView.",
-  "Switch back to the overview tab after scrolling here to verify each tab restores its own offset.",
-  "Drag on the header itself to collapse or reveal it without starting from the scroll content.",
-  "Use short, composed content with ScrollView; use CollapsibleTabs.List for long virtualized datasets.",
-  "The tab indicator follows pager progress while the sticky header remains visible.",
-  "Try quick upward and downward flings to exercise the header decay and spring behavior.",
-  "The same collapsible root can mix ScrollView tabs and List tabs when needed.",
-  "This page intentionally has more rows so the collapsible interaction is easier to test.",
-  "All records are static demo data and can be replaced with real screen content.",
-  "The scroll views register a scroller with the root for active-tab scroll-to-top behavior.",
-  "The active tab offset is synchronized whenever the selected page changes.",
-  "Pager swipes should remain horizontal while vertical movement is handled by the scroll view and header.",
 ];
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const frame = useSafeAreaFrame();
+
+  const keyExtractor = useCallback((_: string, index: number) => String(index), []);
+
+  const renderDetailItem = useCallback(
+    ({ item, index }: { item: string; index: number }) => (
+      <View style={styles.detailRow}>
+        <Text style={styles.detailNumber}>{index + 1}</Text>
+        <Text style={styles.detailText}>{item}</Text>
+      </View>
+    ),
+    [],
+  );
 
   return (
     <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
@@ -173,20 +171,17 @@ export default function HomeScreen() {
           </CollapsibleTabs.Tab>
 
           <CollapsibleTabs.Tab index={1} lazy={false}>
-            <CollapsibleTabs.ScrollView
+            <CollapsibleTabs.List
+              data={details}
+              keyExtractor={keyExtractor}
               contentContainerStyle={styles.scrollContent}
-            >
-              <View style={styles.panel}>
-                <Text style={styles.panelTitle}>Try these interactions</Text>
-                {details.map((text, index) => (
-                  <View key={index} style={styles.detailRow}>
-                    <Text style={styles.detailNumber}>{index + 1}</Text>
-                    <Text style={styles.detailText}>{text}</Text>
-                  </View>
-                ))}
-              </View>
-              <View style={styles.footerSpace} />
-            </CollapsibleTabs.ScrollView>
+              ListHeaderComponent={
+                <View style={styles.panelHeader}>
+                  <Text style={styles.panelTitle}>Try these interactions</Text>
+                </View>
+              }
+              renderItem={renderDetailItem}
+            />
           </CollapsibleTabs.Tab>
         </CollapsibleTabs.Pager>
       </CollapsibleTabs.Root>
@@ -259,9 +254,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
   },
-  panel: {
+  panelHeader: {
     padding: 20,
+    paddingBottom: 8,
     borderRadius: 22,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
     backgroundColor: "#ffffff",
   },
   panelTitle: {
@@ -273,7 +271,9 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: "row",
     gap: 12,
+    paddingHorizontal: 20,
     paddingVertical: 12,
+    backgroundColor: "#ffffff",
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#e4e7ec",
   },
@@ -294,8 +294,5 @@ const styles = StyleSheet.create({
     color: "#475467",
     fontSize: 15,
     lineHeight: 22,
-  },
-  footerSpace: {
-    height: 220,
   },
 });

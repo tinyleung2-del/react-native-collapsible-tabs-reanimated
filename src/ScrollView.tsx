@@ -2,7 +2,6 @@ import { ReactElement, memo, useCallback, useEffect, useMemo } from "react";
 
 import {
   LayoutChangeEvent,
-  ScrollView as RNScrollView,
   ScrollViewProps as RNScrollViewProps,
   StyleSheet,
   View,
@@ -22,10 +21,6 @@ import { ListScroller, useCollapsibleTabsContext } from "./Context";
 import { useTabSelfContext } from "./Tab";
 import { useStableCallback } from "./useStableCallback";
 
-const AnimatedScrollView = Animated.createAnimatedComponent(
-  RNScrollView,
-) as unknown as typeof RNScrollView;
-
 export type ScrollViewProps = RNScrollViewProps;
 
 const ScrollView = ({
@@ -41,7 +36,7 @@ const ScrollView = ({
   } = useCollapsibleTabsContext();
   const { index } = useTabSelfContext();
   const selfOffset = useSharedValue(0);
-  const scrollRef = useAnimatedRef<any>();
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
 
   const onScroll = useAnimatedScrollHandler((event) => {
     selfOffset.value = event.contentOffset.y;
@@ -75,14 +70,8 @@ const ScrollView = ({
     return () => registerListScroller(index, null);
   }, [index, registerListScroller, scroller]);
 
-  const stableLayout = useStableCallback(
-    onLayout as ((event: LayoutChangeEvent) => void) | undefined,
-  );
-  const stableContentSizeChange = useStableCallback(
-    onContentSizeChange as
-      | ((width: number, height: number) => void)
-      | undefined,
-  );
+  const stableLayout = useStableCallback(onLayout);
+  const stableContentSizeChange = useStableCallback(onContentSizeChange);
 
   const handleLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -101,7 +90,7 @@ const ScrollView = ({
   return (
     <View style={styles.view} collapsable={false}>
       <GestureDetector gesture={listGestures[index]}>
-        <AnimatedScrollView
+        <Animated.ScrollView
           ref={scrollRef}
           scrollEventThrottle={16}
           bounces={false}
@@ -122,7 +111,7 @@ const ScrollView = ({
 };
 
 const styles = StyleSheet.create({
-  view: { position: "relative" },
+  view: { position: "relative", flex: 1 },
 });
 
 ScrollView.displayName = "CollapsibleTabs.ScrollView";

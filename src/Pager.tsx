@@ -75,8 +75,6 @@ const Pager = ({
   const listHeight =
     height ?? getHeight?.(staticHeightValue, stickyHeightValue) ?? null;
 
-  console.log("listHeight", listHeight);
-
   const pageScrollHandlers = useMemo<PageScrollHandlers>(
     () => ({
       onPageScroll: (event) => {
@@ -98,7 +96,7 @@ const Pager = ({
 
   const animatedStyle = useAnimatedStyle(
     () => ({
-      ...(listHeight != null ? { listHeight } : null),
+      ...(listHeight != null ? { height: listHeight } : null),
       transform: [{ translateY: headerOffset.value }],
     }),
     [listHeight],
@@ -130,9 +128,7 @@ const Pager = ({
 Pager.displayName = "CollapsibleTabs.Pager";
 
 const styles = StyleSheet.create({
-  flex1: { flexGrow: 1 },
-  staticPage: { flexGrow: 1 },
-  staticPagerRow: { flexDirection: "row", flexGrow: 1 },
+  flex1: { flex: 1 },
 });
 
 export default memo(Pager);

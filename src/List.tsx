@@ -1,7 +1,6 @@
 import { ReactElement, memo, useCallback, useEffect, useMemo } from "react";
 
 import {
-  FlatList,
   FlatListProps,
   LayoutChangeEvent,
   StyleSheet,
@@ -22,11 +21,7 @@ import { ListScroller, useCollapsibleTabsContext } from "./Context";
 import { useTabSelfContext } from "./Tab";
 import { useStableCallback } from "./useStableCallback";
 
-const AnimatedFlatList = Animated.createAnimatedComponent(
-  FlatList,
-) as unknown as typeof FlatList;
-
-export type ListProps<T> = FlatListProps<T>;
+export type ListProps<T> = Omit<FlatListProps<T>, "CellRendererComponent">;
 
 const List = <T,>({
   onLayout,
@@ -41,7 +36,7 @@ const List = <T,>({
   } = useCollapsibleTabsContext();
   const { index } = useTabSelfContext();
   const selfOffset = useSharedValue(0);
-  const listRef = useAnimatedRef<any>();
+  const listRef = useAnimatedRef<Animated.FlatList<T>>();
 
   const onScroll = useAnimatedScrollHandler((event) => {
     selfOffset.value = event.contentOffset.y;
@@ -75,14 +70,8 @@ const List = <T,>({
     return () => registerListScroller(index, null);
   }, [index, registerListScroller, scroller]);
 
-  const stableLayout = useStableCallback(
-    onLayout as ((event: LayoutChangeEvent) => void) | undefined,
-  );
-  const stableContentSizeChange = useStableCallback(
-    onContentSizeChange as
-      | ((width: number, height: number) => void)
-      | undefined,
-  );
+  const stableLayout = useStableCallback(onLayout);
+  const stableContentSizeChange = useStableCallback(onContentSizeChange);
 
   const handleLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -101,14 +90,12 @@ const List = <T,>({
   return (
     <View style={styles.view} collapsable={false}>
       <GestureDetector gesture={listGestures[index]}>
-        <AnimatedFlatList<T>
+        <Animated.FlatList
           ref={listRef}
           scrollEventThrottle={16}
-          bounces={false}
           showsVerticalScrollIndicator
           directionalLockEnabled
           keyboardShouldPersistTaps="handled"
-          overScrollMode="never"
           scrollToOverflowEnabled={false}
           {...props}
           onScroll={composedScrollEvent}
@@ -121,9 +108,7 @@ const List = <T,>({
 };
 
 const styles = StyleSheet.create({
-  view: { position: "relative", flex: 1 },
-  scroller: { flex: 1 },
-  contentContainer: { flexGrow: 1 },
+  view: { position: "relative" },
 });
 
 List.displayName = "CollapsibleTabs.List";

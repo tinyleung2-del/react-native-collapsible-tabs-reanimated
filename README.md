@@ -13,9 +13,13 @@ Make sure Reanimated is configured in your app. See the Reanimated installation 
 ## Usage
 
 ```tsx
+import { useCallback } from 'react';
 import CollapsibleTabs from 'react-native-collapsible-tabs-reanimated';
 
 export function Example() {
+  const keyExtractor = useCallback((item: number) => String(item), []);
+  const renderItem = useCallback(({ item }: { item: number }) => null, []);
+
   return (
     <CollapsibleTabs.Root pageLength={2}>
       <CollapsibleTabs.Header>
@@ -33,10 +37,10 @@ export function Example() {
 
       <CollapsibleTabs.Pager>
         <CollapsibleTabs.Tab index={0}>
-          <CollapsibleTabs.List data={[1, 2, 3]} renderItem={({ item }) => null} />
+          <CollapsibleTabs.List data={[1, 2, 3]} keyExtractor={keyExtractor} renderItem={renderItem} />
         </CollapsibleTabs.Tab>
         <CollapsibleTabs.Tab index={1}>
-          <CollapsibleTabs.List data={[4, 5, 6]} renderItem={({ item }) => null} />
+          <CollapsibleTabs.List data={[4, 5, 6]} keyExtractor={keyExtractor} renderItem={renderItem} />
         </CollapsibleTabs.Tab>
       </CollapsibleTabs.Pager>
     </CollapsibleTabs.Root>
@@ -78,7 +82,7 @@ yarn start
     },
   }}
 >
-  <CollapsibleTabs.List data={[1, 2, 3]} renderItem={({ item }) => null} />
+  <CollapsibleTabs.List data={[1, 2, 3]} keyExtractor={keyExtractor} renderItem={renderItem} />
 </CollapsibleTabs.Tab>
 ```
 
