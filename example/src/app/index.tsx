@@ -1,14 +1,18 @@
 import { useCallback } from "react";
 
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { ListRenderItemInfo, StyleSheet, Text, View } from "react-native";
 import CollapsibleTabs from "react-native-collapsible-tabs-reanimated";
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-const TAB_COUNT = 2;
+const TAB_COUNT = 3;
+
+type StickyRecord =
+  | { id: string; type: "header"; title: string }
+  | { id: string; type: "item"; title: string; text: string };
 
 const overviewCards = [
   {
@@ -84,14 +88,81 @@ const details = [
   "Pager swipes should remain horizontal while vertical movement is handled by the scroll view and header.",
 ];
 
+const stickyRecords: StickyRecord[] = [
+  { id: "basics", type: "header", title: "Basics" },
+  {
+    id: "basics-scroll-offset",
+    type: "item",
+    title: "Track the active offset",
+    text: "List scroll events update the active tab offset used by the collapsible header gesture.",
+  },
+  {
+    id: "basics-native-list",
+    type: "item",
+    title: "Use the List wrapper",
+    text: "CollapsibleTabs.List forwards normal FlatList props, including stickyHeaderIndices.",
+  },
+  {
+    id: "basics-stable-callbacks",
+    type: "item",
+    title: "Keep render callbacks stable",
+    text: "Wrap renderItem and keyExtractor with useCallback when passing them into the example lists.",
+  },
+  { id: "sections", type: "header", title: "Sticky sections" },
+  {
+    id: "sections-indices",
+    type: "item",
+    title: "Provide sticky indices",
+    text: "The header rows in this tab are listed in stickyHeaderIndices so they pin inside the list viewport.",
+  },
+  {
+    id: "sections-style",
+    type: "item",
+    title: "Give headers a solid background",
+    text: "Sticky rows should paint their own background so content does not show through while scrolling.",
+  },
+  {
+    id: "sections-content",
+    type: "item",
+    title: "Render mixed rows",
+    text: "The renderItem callback switches between section headers and regular content rows.",
+  },
+  { id: "gestures", type: "header", title: "Gestures" },
+  {
+    id: "gestures-collapse",
+    type: "item",
+    title: "Collapse the page header",
+    text: "Scroll this list upward and the outer static header collapses while section headers remain sticky.",
+  },
+  {
+    id: "gestures-swipe",
+    type: "item",
+    title: "Swipe between tabs",
+    text: "Horizontal pager gestures continue to work while vertical list gestures drive the collapsible header.",
+  },
+  {
+    id: "gestures-restore",
+    type: "item",
+    title: "Return to the tab",
+    text: "Switch away and back to verify this list keeps its scroll position independently.",
+  },
+];
+
+const stickyHeaderIndices = stickyRecords.reduce<number[]>((indices, item, index) => {
+  if (item.type === "header") indices.push(index);
+  return indices;
+}, []);
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const frame = useSafeAreaFrame();
 
   const keyExtractor = useCallback((_: string, index: number) => String(index), []);
 
+  const stickyKeyExtractor = useCallback((item: StickyRecord) => item.id, []);
+
   const renderDetailItem = useCallback(
-    ({ item, index }: { item: string; index: number }) => (
+    ({ item, index }: ListRenderItemInfo<string>) => (
       <View style={styles.detailRow}>
         <Text style={styles.detailNumber}>{index + 1}</Text>
         <Text style={styles.detailText}>{item}</Text>
@@ -99,6 +170,23 @@ export default function HomeScreen() {
     ),
     [],
   );
+
+  const renderStickyItem = useCallback(({ item }: ListRenderItemInfo<StickyRecord>) => {
+    if (item.type === "header") {
+      return (
+        <View style={styles.stickySectionHeader}>
+          <Text style={styles.stickySectionTitle}>{item.title}</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.stickyItemRow}>
+        <Text style={styles.stickyItemTitle}>{item.title}</Text>
+        <Text style={styles.stickyItemText}>{item.text}</Text>
+      </View>
+    );
+  }, []);
 
   return (
     <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
@@ -147,6 +235,15 @@ export default function HomeScreen() {
               >
                 Details
               </CollapsibleTabs.Button>
+              <CollapsibleTabs.Button
+                index={2}
+                name="Sticky"
+                fullWidth
+                activeLabelColor="#101828"
+                inactiveLabelColor="#98a2b3"
+              >
+                Sticky
+              </CollapsibleTabs.Button>
               <CollapsibleTabs.MaterialIndicator color="#2563eb" />
             </CollapsibleTabs.Bar>
           </CollapsibleTabs.StickyHeader>
@@ -181,6 +278,16 @@ export default function HomeScreen() {
                 </View>
               }
               renderItem={renderDetailItem}
+            />
+          </CollapsibleTabs.Tab>
+
+          <CollapsibleTabs.Tab index={2} lazy={false}>
+            <CollapsibleTabs.List
+              data={stickyRecords}
+              keyExtractor={stickyKeyExtractor}
+              renderItem={renderStickyItem}
+              stickyHeaderIndices={stickyHeaderIndices}
+              contentContainerStyle={styles.stickyListContent}
             />
           </CollapsibleTabs.Tab>
         </CollapsibleTabs.Pager>
@@ -232,6 +339,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     gap: 14,
+  },
+  stickyListContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   card: {
     padding: 20,
@@ -294,5 +405,36 @@ const styles = StyleSheet.create({
     color: "#475467",
     fontSize: 15,
     lineHeight: 22,
+  },
+  stickySectionHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: "#eff6ff",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#bfdbfe",
+  },
+  stickySectionTitle: {
+    color: "#1d4ed8",
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  stickyItemRow: {
+    padding: 18,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#e4e7ec",
+  },
+  stickyItemTitle: {
+    color: "#101828",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  stickyItemText: {
+    marginTop: 6,
+    color: "#475467",
+    fontSize: 14,
+    lineHeight: 21,
   },
 });

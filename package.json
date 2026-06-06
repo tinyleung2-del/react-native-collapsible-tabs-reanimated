@@ -7,6 +7,21 @@
   "module": "lib/module/index.js",
   "types": "lib/typescript/index.d.ts",
   "react-native": "src/index.ts",
+  "exports": {
+    ".": {
+      "react-native": "./src/index.ts",
+      "types": "./lib/typescript/index.d.ts",
+      "import": "./lib/module/index.js",
+      "require": "./lib/commonjs/index.js"
+    },
+    "./flash-list": {
+      "react-native": "./src/flash-list.ts",
+      "types": "./lib/typescript/flash-list.d.ts",
+      "import": "./lib/module/flash-list.js",
+      "require": "./lib/commonjs/flash-list.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "src",
     "lib",
@@ -36,6 +51,7 @@
   "author": "tinyleung2-del (https://github.com/tinyleung2-del)",
   "license": "MIT",
   "peerDependencies": {
+    "@shopify/flash-list": ">=2.0.0",
     "react": ">=18",
     "react-native": ">=0.72",
     "react-native-gesture-handler": ">=2.0.0",
@@ -43,11 +59,18 @@
     "react-native-reanimated": ">=4.0.0",
     "react-native-worklets": ">=0.6.0"
   },
+  "peerDependenciesMeta": {
+    "@shopify/flash-list": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@babel/core": "latest",
+    "@babel/runtime": "latest",
     "@react-native/babel-preset": "latest",
     "@react-native/metro-config": "latest",
     "@react-native/typescript-config": "latest",
+    "@shopify/flash-list": "latest",
     "@types/react": "latest",
     "react": "latest",
     "react-native": "latest",
