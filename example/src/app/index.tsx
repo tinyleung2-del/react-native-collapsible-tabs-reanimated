@@ -1,16 +1,53 @@
 import { useCallback } from "react";
 
-import { StatusBar } from "expo-status-bar";
-import { ListRenderItemInfo, StyleSheet, Text, View } from "react-native";
-import CollapsibleTabs from "react-native-collapsible-tabs-reanimated";
-import { CollapsibleFlashList } from "react-native-collapsible-tabs-reanimated/flash-list";
+import type { LegendListRenderItemProps } from "@legendapp/list/react-native";
 import type { ListRenderItemInfo as FlashListRenderItemInfo } from "@shopify/flash-list";
+import { StatusBar } from "expo-status-bar";
+import { Pressable } from "react-native-gesture-handler";
+import { ListRenderItemInfo, StyleSheet, Text, View } from "react-native";
+import CollapsibleTabs, {
+  useCollapsibleTabsContext,
+} from "react-native-collapsible-tabs-reanimated";
+import { CollapsibleFlashList } from "react-native-collapsible-tabs-reanimated/flash-list";
+import { CollapsibleLegendList } from "react-native-collapsible-tabs-reanimated/legend-list";
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-const TAB_COUNT = 4;
+const TAB_COUNT = 6;
+
+const TAB_LABELS = [
+  "Overview",
+  "Details",
+  "Sticky",
+  "FlashList",
+  "Legend",
+  "Placeholder",
+] as const;
+
+function QuickNavButton({ index, label }: { index: number; label: string }) {
+  "use no memo";
+  const { pagerRef, activeTabIndexValue } = useCollapsibleTabsContext();
+  const isActive = activeTabIndexValue === index;
+
+  const handlePress = useCallback(() => {
+    pagerRef.current?.setPage(index);
+  }, [index, pagerRef]);
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={[styles.quickNavBtn, isActive && styles.quickNavBtnActive]}
+    >
+      <Text
+        style={[styles.quickNavText, isActive && styles.quickNavTextActive]}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
 
 type StickyRecord =
   | { id: string; type: "header"; title: string }
@@ -205,7 +242,12 @@ export default function HomeScreen() {
     ({ item, index, target }: FlashListRenderItemInfo<StickyRecord>) => {
       if (item.type === "header") {
         return (
-          <View style={[styles.flashSectionHeader, target === "StickyHeader" && styles.flashSectionHeaderPinned]}>
+          <View
+            style={[
+              styles.flashSectionHeader,
+              target === "StickyHeader" && styles.flashSectionHeaderPinned,
+            ]}
+          >
             <Text style={styles.flashSectionTitle}>{item.title}</Text>
           </View>
         );
@@ -226,13 +268,33 @@ export default function HomeScreen() {
     [],
   );
 
+  const renderLegendStickyItem = useCallback(
+    ({ item }: LegendListRenderItemProps<StickyRecord>) => {
+      if (item.type === "header") {
+        return (
+          <View style={styles.legendSectionHeader}>
+            <Text style={styles.legendSectionTitle}>{item.title}</Text>
+          </View>
+        );
+      }
+
+      return (
+        <View style={styles.legendRow}>
+          <Text style={styles.legendRowTitle}>{item.title}</Text>
+          <Text style={styles.legendRowText}>{item.text}</Text>
+        </View>
+      );
+    },
+    [],
+  );
+
   return (
     <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
       <StatusBar style="light" />
       <View style={{ height: insets.top, backgroundColor: "#172554" }} />
       <CollapsibleTabs.Root
         pageLength={TAB_COUNT}
-        initialStaticHeight={176}
+        initialStaticHeight={272}
         initialStickyHeight={56}
       >
         <CollapsibleTabs.Header style={{ backgroundColor: "#172554" }}>
@@ -246,19 +308,23 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>
               A compact Expo demo for the new collapsible scroll container.
             </Text>
+            <View style={styles.quickNavRow}>
+              {TAB_LABELS.map((label, i) => (
+                <QuickNavButton key={label} index={i} label={label} />
+              ))}
+            </View>
           </CollapsibleTabs.StaticHeader>
 
           <CollapsibleTabs.StickyHeader style={styles.stickyHeader}>
             <CollapsibleTabs.Bar
-              fullWidth
-              scrollButtons={false}
+              tabButtonsGap={12}
+              scrollButtons
               backgroundColor="#ffffff"
               scrollContainerStyle={styles.tabBar}
             >
               <CollapsibleTabs.Button
                 index={0}
                 name="Overview"
-                fullWidth
                 activeLabelColor="#101828"
                 inactiveLabelColor="#98a2b3"
               >
@@ -267,7 +333,6 @@ export default function HomeScreen() {
               <CollapsibleTabs.Button
                 index={1}
                 name="Details"
-                fullWidth
                 activeLabelColor="#101828"
                 inactiveLabelColor="#98a2b3"
               >
@@ -276,7 +341,6 @@ export default function HomeScreen() {
               <CollapsibleTabs.Button
                 index={2}
                 name="Sticky"
-                fullWidth
                 activeLabelColor="#101828"
                 inactiveLabelColor="#98a2b3"
               >
@@ -285,11 +349,27 @@ export default function HomeScreen() {
               <CollapsibleTabs.Button
                 index={3}
                 name="FlashList"
-                fullWidth
                 activeLabelColor="#101828"
                 inactiveLabelColor="#98a2b3"
               >
                 FlashList
+              </CollapsibleTabs.Button>
+              <CollapsibleTabs.Button
+                index={4}
+                name="LegendList"
+                activeLabelColor="#101828"
+                inactiveLabelColor="#98a2b3"
+              >
+                Legend
+              </CollapsibleTabs.Button>
+
+              <CollapsibleTabs.Button
+                index={5}
+                name="Placeholder"
+                activeLabelColor="#101828"
+                inactiveLabelColor="#98a2b3"
+              >
+                Placeholder
               </CollapsibleTabs.Button>
               <CollapsibleTabs.MaterialIndicator color="#2563eb" />
             </CollapsibleTabs.Bar>
@@ -347,13 +427,50 @@ export default function HomeScreen() {
               contentContainerStyle={styles.stickyListContent}
               ListHeaderComponent={
                 <View style={styles.panelHeader}>
-                  <Text style={styles.panelTitle}>FlashList sticky headers</Text>
+                  <Text style={styles.panelTitle}>
+                    FlashList sticky headers
+                  </Text>
                   <Text style={styles.panelSubtitle}>
                     Powered by @shopify/flash-list via CollapsibleFlashList.
                   </Text>
                 </View>
               }
             />
+          </CollapsibleTabs.Tab>
+
+          <CollapsibleTabs.Tab index={4} lazy={false}>
+            <CollapsibleLegendList
+              data={stickyRecords}
+              keyExtractor={stickyKeyExtractor}
+              renderItem={renderLegendStickyItem}
+              stickyHeaderIndices={stickyHeaderIndices}
+              recycleItems
+              estimatedItemSize={78}
+              contentContainerStyle={styles.stickyListContent}
+              ListHeaderComponent={
+                <View style={styles.panelHeader}>
+                  <Text style={styles.panelTitle}>
+                    LegendList sticky headers
+                  </Text>
+                  <Text style={styles.panelSubtitle}>
+                    Legend List v3 via CollapsibleLegendList.
+                  </Text>
+                </View>
+              }
+            />
+          </CollapsibleTabs.Tab>
+
+          <CollapsibleTabs.Tab index={5} lazy={false}>
+            <CollapsibleTabs.ScrollView
+              contentContainerStyle={styles.scrollContent}
+            >
+              {overviewCards.map((item) => (
+                <View key={item.title} style={styles.card}>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+                  <Text style={styles.cardText}>{item.text}</Text>
+                </View>
+              ))}
+            </CollapsibleTabs.ScrollView>
           </CollapsibleTabs.Tab>
         </CollapsibleTabs.Pager>
       </CollapsibleTabs.Root>
@@ -367,11 +484,37 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f4f7",
   },
   hero: {
-    minHeight: 176,
+    minHeight: 272,
     justifyContent: "flex-end",
     paddingHorizontal: 24,
     paddingBottom: 24,
     backgroundColor: "#172554",
+  },
+  quickNavRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 20,
+  },
+  quickNavBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.25)",
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
+  quickNavBtnActive: {
+    borderColor: "#60a5fa",
+    backgroundColor: "rgba(96,165,250,0.2)",
+  },
+  quickNavText: {
+    color: "rgba(255,255,255,0.65)",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  quickNavTextActive: {
+    color: "#93c5fd",
   },
   eyebrow: {
     color: "#bfdbfe",
@@ -399,7 +542,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   tabBar: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 12,
   },
   scrollContent: {
     padding: 20,
@@ -562,5 +705,36 @@ const styles = StyleSheet.create({
     color: "#667085",
     fontSize: 13,
     lineHeight: 19,
+  },
+  legendSectionHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: "#ecfdf3",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#bbf7d0",
+  },
+  legendSectionTitle: {
+    color: "#15803d",
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  legendRow: {
+    padding: 18,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#e4e7ec",
+  },
+  legendRowTitle: {
+    color: "#101828",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  legendRowText: {
+    marginTop: 6,
+    color: "#475467",
+    fontSize: 14,
+    lineHeight: 21,
   },
 });

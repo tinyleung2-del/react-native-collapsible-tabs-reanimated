@@ -2216,7 +2216,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@legendapp/list@npm:latest":
+"@legendapp/list@npm:^3.0.2, @legendapp/list@npm:latest":
   version: 3.0.2
   resolution: "@legendapp/list@npm:3.0.2"
   dependencies:
@@ -5099,6 +5099,7 @@ __metadata:
   resolution: "example@workspace:example"
   dependencies:
     "@babel/core": "npm:latest"
+    "@legendapp/list": "npm:^3.0.2"
     "@react-native/metro-config": "npm:latest"
     "@shopify/flash-list": "npm:^2.3.1"
     "@types/react": "npm:~19.2.2"

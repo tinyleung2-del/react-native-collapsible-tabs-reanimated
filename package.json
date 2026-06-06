@@ -9,22 +9,22 @@
   "react-native": "src/index.ts",
   "exports": {
     ".": {
+      "source": "./src/index.ts",
       "react-native": "./src/index.ts",
       "types": "./lib/typescript/index.d.ts",
-      "import": "./lib/module/index.js",
-      "require": "./lib/commonjs/index.js"
+      "default": "./lib/module/index.js"
     },
     "./flash-list": {
+      "source": "./src/flash-list.ts",
       "react-native": "./src/flash-list.ts",
       "types": "./lib/typescript/flash-list.d.ts",
-      "import": "./lib/module/flash-list.js",
-      "require": "./lib/commonjs/flash-list.js"
+      "default": "./lib/module/flash-list.js"
     },
     "./legend-list": {
+      "source": "./src/legend-list.ts",
       "react-native": "./src/legend-list.ts",
       "types": "./lib/typescript/legend-list.d.ts",
-      "import": "./lib/module/legend-list.js",
-      "require": "./lib/commonjs/legend-list.js"
+      "default": "./lib/module/legend-list.js"
     },
     "./package.json": "./package.json"
   },
@@ -102,7 +102,8 @@
       [
         "typescript",
         {
-          "project": "tsconfig.build.json"
+          "project": "tsconfig.build.json",
+          "tsc": "node_modules/typescript/bin/tsc"
         }
       ]
     ]

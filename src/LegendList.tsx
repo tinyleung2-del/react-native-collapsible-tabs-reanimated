@@ -37,8 +37,6 @@ export type CollapsibleLegendListProps<T> = LegendListLibProps<T>;
 const CollapsibleLegendList = <T,>({
   onLayout,
   onContentSizeChange,
-  style,
-  contentContainerStyle,
   ...props
 }: CollapsibleLegendListProps<T>) => {
   const {
@@ -111,12 +109,6 @@ const CollapsibleLegendList = <T,>({
           showsVerticalScrollIndicator
           directionalLockEnabled
           keyboardShouldPersistTaps="handled"
-          renderScrollComponent={RNGHScrollView}
-          style={[styles.scroller, style]}
-          contentContainerStyle={[
-            styles.contentContainer,
-            contentContainerStyle,
-          ]}
           {...props}
           onScroll={composedScrollEvent}
           onLayout={handleLayout}
@@ -128,9 +120,7 @@ const CollapsibleLegendList = <T,>({
 };
 
 const styles = StyleSheet.create({
-  view: { position: "relative", flex: 1 },
-  scroller: { flex: 1 },
-  contentContainer: { flexGrow: 1 },
+  view: { position: "relative" },
 });
 
 CollapsibleLegendList.displayName = "CollapsibleTabs.CollapsibleLegendList";
