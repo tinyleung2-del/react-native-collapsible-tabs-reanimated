@@ -47,3 +47,39 @@ export function Example() {
 ## Notes
 
 This package does not depend on app-specific theme hooks. Colors, labels, scroll buttons, indicators, and lazy placeholders are configurable through props.
+
+## Example App
+
+The `example` folder contains a runnable Expo app with basic and customized lazy tab implementations.
+
+```sh
+cd example
+yarn install
+yarn start
+```
+
+## Lazy Tab Customization
+
+`CollapsibleTabs.Tab` accepts `lazyProps` for customizing the lazy mount wrapper without replacing the tab implementation.
+
+```tsx
+<CollapsibleTabs.Tab
+  index={0}
+  loader={<ActivityIndicator />}
+  loaderStyle={{ minHeight: 160, alignItems: 'center', justifyContent: 'center' }}
+  lazyProps={{
+    enteringDuration: 280,
+    enteringDelay: 0,
+    exitingDuration: 120,
+    placeholderProps: { accessibilityLabel: 'Loading tab content' },
+    containerProps: { testID: 'first-tab-content' },
+    onMount: () => {
+      // Track or prefetch once the tab content is allowed to mount.
+    },
+  }}
+>
+  <CollapsibleTabs.List data={[1, 2, 3]} renderItem={({ item }) => null} />
+</CollapsibleTabs.Tab>
+```
+
+For lower-level use cases, `Lazy`, `LazyProps`, and `LazyPlaceholderInfo` are exported directly.

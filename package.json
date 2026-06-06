@@ -1,6 +1,6 @@
 {
   "name": "react-native-collapsible-tabs-reanimated",
-  "version": "0.1.0",
+  "version": "0.1.0-beta",
   "description": "Collapsible tab views for React Native powered by Reanimated and Gesture Handler.",
   "source": "src/index.ts",
   "main": "lib/commonjs/index.js",
@@ -12,6 +12,9 @@
     "lib",
     "README.md",
     "LICENSE"
+  ],
+  "workspaces": [
+    "example"
   ],
   "scripts": {
     "build": "bob build",
@@ -41,7 +44,9 @@
     "react-native-worklets": ">=0.6.0"
   },
   "devDependencies": {
+    "@babel/core": "latest",
     "@react-native/babel-preset": "latest",
+    "@react-native/metro-config": "latest",
     "@react-native/typescript-config": "latest",
     "@types/react": "latest",
     "react": "latest",

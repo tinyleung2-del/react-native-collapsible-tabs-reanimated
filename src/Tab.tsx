@@ -6,7 +6,7 @@ import { SharedValue, useAnimatedReaction, useSharedValue } from 'react-native-r
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { useCollapsibleTabsContext } from './Context';
-import { Lazy } from './Lazy';
+import { Lazy, type LazyProps } from './Lazy';
 
 export type TabProps = {
   index: number;
@@ -18,9 +18,21 @@ export type TabProps = {
   isLoading?: boolean;
   isScreenFocused?: boolean;
   loaderStyle?: StyleProp<ViewStyle>;
+  lazyProps?: Omit<LazyProps, 'children' | 'disableEntering' | 'focused' | 'placeholder' | 'placeholderStyle'>;
 };
 
-const Tab = ({ index, loader, loaderStyle, disableLazyEntering = true, disablePreload = false, lazy = true, children, isLoading = false, isScreenFocused = true }: TabProps) => {
+const Tab = ({
+  index,
+  loader,
+  loaderStyle,
+  lazyProps,
+  disableLazyEntering = true,
+  disablePreload = false,
+  lazy = true,
+  children,
+  isLoading = false,
+  isScreenFocused = true,
+}: TabProps) => {
   const { activeTabIndexValue, pageDecimal } = useCollapsibleTabsContext();
   const [shouldPreload, setShouldPreload] = useState(false);
   const [canMount, setCanMount] = useState(lazy === false);
@@ -50,7 +62,7 @@ const Tab = ({ index, loader, loaderStyle, disableLazyEntering = true, disablePr
     if (lazy) {
       if (!canMount) return null;
       return (
-        <Lazy focused={isMounted && !isLoading} disableEntering={disableLazyEntering} placeholder={loader} placeholderStyle={loaderStyle}>
+        <Lazy {...lazyProps} focused={isMounted && !isLoading} disableEntering={disableLazyEntering} placeholder={loader} placeholderStyle={loaderStyle}>
           {typeof children === 'function' ? children({ isFocused, pageDecimal }) : children}
         </Lazy>
       );

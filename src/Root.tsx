@@ -78,9 +78,9 @@ const RootInner = memo(
 
     const updateStaticHeight = useCallback(
       (height: number) => {
+        staticHeight.value = height;
         setStaticHeightValue((prev) => {
           if (Math.abs(prev - height) < HEIGHT_EPSILON) return prev;
-          staticHeight.value = height;
           return height;
         });
       },
@@ -89,9 +89,9 @@ const RootInner = memo(
 
     const updateStickyHeight = useCallback(
       (height: number) => {
+        stickyHeight.value = height;
         setStickyHeightValue((prev) => {
           if (Math.abs(prev - height) < HEIGHT_EPSILON) return prev;
-          stickyHeight.value = height;
           return height;
         });
       },

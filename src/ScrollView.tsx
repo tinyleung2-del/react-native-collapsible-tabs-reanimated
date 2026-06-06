@@ -1,9 +1,9 @@
 import { ReactElement, memo, useCallback, useEffect, useMemo } from "react";
 
 import {
-  FlatList,
-  FlatListProps,
   LayoutChangeEvent,
+  ScrollView as RNScrollView,
+  ScrollViewProps as RNScrollViewProps,
   StyleSheet,
   View,
 } from "react-native";
@@ -22,17 +22,17 @@ import { ListScroller, useCollapsibleTabsContext } from "./Context";
 import { useTabSelfContext } from "./Tab";
 import { useStableCallback } from "./useStableCallback";
 
-const AnimatedFlatList = Animated.createAnimatedComponent(
-  FlatList,
-) as unknown as typeof FlatList;
+const AnimatedScrollView = Animated.createAnimatedComponent(
+  RNScrollView,
+) as unknown as typeof RNScrollView;
 
-export type ListProps<T> = FlatListProps<T>;
+export type ScrollViewProps = RNScrollViewProps;
 
-const List = <T,>({
+const ScrollView = ({
   onLayout,
   onContentSizeChange,
   ...props
-}: ListProps<T>) => {
+}: ScrollViewProps) => {
   const {
     listGestures,
     activeTabIndex,
@@ -41,7 +41,7 @@ const List = <T,>({
   } = useCollapsibleTabsContext();
   const { index } = useTabSelfContext();
   const selfOffset = useSharedValue(0);
-  const listRef = useAnimatedRef<any>();
+  const scrollRef = useAnimatedRef<any>();
 
   const onScroll = useAnimatedScrollHandler((event) => {
     selfOffset.value = event.contentOffset.y;
@@ -65,9 +65,9 @@ const List = <T,>({
     (): ListScroller =>
       (animated = true) => {
         "worklet";
-        scrollTo(listRef, 0, 0, animated);
+        scrollTo(scrollRef, 0, 0, animated);
       },
-    [listRef],
+    [scrollRef],
   );
 
   useEffect(() => {
@@ -101,8 +101,8 @@ const List = <T,>({
   return (
     <View style={styles.view} collapsable={false}>
       <GestureDetector gesture={listGestures[index]}>
-        <AnimatedFlatList<T>
-          ref={listRef}
+        <AnimatedScrollView
+          ref={scrollRef}
           scrollEventThrottle={16}
           bounces={false}
           showsVerticalScrollIndicator
@@ -111,6 +111,7 @@ const List = <T,>({
           overScrollMode="never"
           scrollToOverflowEnabled={false}
           {...props}
+          // onScroll={onScroll as RNScrollViewProps["onScroll"]}
           onScroll={composedScrollEvent}
           onLayout={handleLayout}
           onContentSizeChange={handleContentSizeChange}
@@ -121,11 +122,9 @@ const List = <T,>({
 };
 
 const styles = StyleSheet.create({
-  view: { position: "relative", flex: 1 },
-  scroller: { flex: 1 },
-  contentContainer: { flexGrow: 1 },
+  view: { position: "relative" },
 });
 
-List.displayName = "CollapsibleTabs.List";
+ScrollView.displayName = "CollapsibleTabs.ScrollView";
 
-export default memo(List) as <T>(props: ListProps<T>) => ReactElement;
+export default memo(ScrollView) as (props: ScrollViewProps) => ReactElement;
