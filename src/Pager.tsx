@@ -89,7 +89,6 @@ const Pager = ({
   const onPageSelected = useCallback(
     (event: PagerViewOnPageSelectedEvent) => {
       activeTabIndex.value = event.nativeEvent.position;
-      activeListOffset.value = 0;
     },
     [activeListOffset, activeTabIndex],
   );
