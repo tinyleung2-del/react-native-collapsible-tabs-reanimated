@@ -40,6 +40,9 @@
   "scripts": {
     "build": "bob build",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "format": "prettier --write src/",
+    "format-check": "prettier --check src/",
     "clean": "rimraf lib"
   },
   "keywords": [
@@ -81,12 +84,16 @@
   "devDependencies": {
     "@babel/core": "latest",
     "@babel/runtime": "latest",
+    "@eslint/js": "^10.0.1",
     "@legendapp/list": "latest",
     "@react-native/babel-preset": "latest",
     "@react-native/metro-config": "latest",
     "@react-native/typescript-config": "latest",
     "@shopify/flash-list": "latest",
     "@types/react": "latest",
+    "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.4",
     "react": "latest",
     "react-native": "latest",
     "react-native-builder-bob": "latest",
@@ -95,7 +102,8 @@
     "react-native-reanimated": "latest",
     "react-native-worklets": "latest",
     "rimraf": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "typescript-eslint": "^8.61.0"
   },
   "react-native-builder-bob": {
     "source": "src",

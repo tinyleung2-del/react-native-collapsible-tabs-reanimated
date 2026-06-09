@@ -1,2 +1,2 @@
-export { default as CollapsibleFlashList } from './FlashList';
-export type { CollapsibleFlashListProps } from './FlashList';
+export { default as CollapsibleFlashList } from "./FlashList";
+export type { CollapsibleFlashListProps } from "./FlashList";

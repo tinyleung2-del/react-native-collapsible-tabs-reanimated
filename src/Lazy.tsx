@@ -1,13 +1,16 @@
-import { ComponentProps, ReactNode, useEffect, useRef, useState } from 'react';
+import { ComponentProps, ReactNode, useEffect, useRef, useState } from "react";
 
-import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from "react-native";
 
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
-import { useStableCallback } from './useStableCallback';
+import { useStableCallback } from "./useStableCallback";
 
 type AnimatedViewProps = ComponentProps<typeof Animated.View>;
-type LazyViewProps = Omit<AnimatedViewProps, 'children' | 'entering' | 'exiting' | 'style'>;
+type LazyViewProps = Omit<
+  AnimatedViewProps,
+  "children" | "entering" | "exiting" | "style"
+>;
 
 export type LazyPlaceholderInfo = {
   focused: boolean;
@@ -25,8 +28,8 @@ export type LazyProps = {
   containerProps?: LazyViewProps & { style?: StyleProp<ViewStyle> };
   disableEntering?: boolean;
   disableExiting?: boolean;
-  entering?: AnimatedViewProps['entering'] | null;
-  exiting?: AnimatedViewProps['exiting'] | null;
+  entering?: AnimatedViewProps["entering"] | null;
+  exiting?: AnimatedViewProps["exiting"] | null;
   enteringDuration?: number;
   enteringDelay?: number;
   exitingDuration?: number;
@@ -69,29 +72,52 @@ export function Lazy({
     }
   }, [focused, stableOnMount]);
 
-  const placeholderPointerEvents = placeholderProps?.pointerEvents ?? 'box-none';
-  const { style: placeholderContainerStyle, pointerEvents: _placeholderPointerEvents, ...restPlaceholderProps } = placeholderProps ?? {};
+  const placeholderPointerEvents =
+    placeholderProps?.pointerEvents ?? "box-none";
+  const {
+    style: placeholderContainerStyle,
+    pointerEvents: _placeholderPointerEvents,
+    ...restPlaceholderProps
+  } = placeholderProps ?? {};
   const { style: containerStyle, ...restContainerProps } = containerProps ?? {};
 
   const enteringAnimation =
-    disableEntering || entering === null ? undefined : entering ?? FadeIn.duration(enteringDuration ?? duration).delay(enteringDelay ?? delay);
-  const exitingAnimation = disableExiting || exiting === null ? undefined : exiting ?? FadeOut.duration(exitingDuration);
+    disableEntering || entering === null
+      ? undefined
+      : (entering ??
+        FadeIn.duration(enteringDuration ?? duration).delay(
+          enteringDelay ?? delay,
+        ));
+  const exitingAnimation =
+    disableExiting || exiting === null
+      ? undefined
+      : (exiting ?? FadeOut.duration(exitingDuration));
 
   if (!canMount) {
     return (
       <Animated.View
         {...restPlaceholderProps}
         exiting={exitingAnimation}
-        style={[styles.placeholder, placeholderStyle, placeholderContainerStyle]}
+        style={[
+          styles.placeholder,
+          placeholderStyle,
+          placeholderContainerStyle,
+        ]}
         pointerEvents={placeholderPointerEvents}
       >
-        {renderPlaceholder ? renderPlaceholder({ focused, canMount }) : placeholder}
+        {renderPlaceholder
+          ? renderPlaceholder({ focused, canMount })
+          : placeholder}
       </Animated.View>
     );
   }
 
   return (
-    <Animated.View {...restContainerProps} entering={enteringAnimation} style={[styles.container, style, containerStyle]}>
+    <Animated.View
+      {...restContainerProps}
+      entering={enteringAnimation}
+      style={[styles.container, style, containerStyle]}
+    >
       {children}
     </Animated.View>
   );
@@ -99,12 +125,12 @@ export function Lazy({
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    width: "100%",
     flex: 1,
-    height: '100%',
+    height: "100%",
   },
   placeholder: {
     paddingVertical: 12,
-    width: '100%',
+    width: "100%",
   },
 });

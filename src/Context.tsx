@@ -1,7 +1,7 @@
-import { ReactNode, RefObject, createContext, memo, useContext } from 'react';
+import { ReactNode, RefObject, createContext, memo, useContext } from "react";
 
-import PagerView from 'react-native-pager-view';
-import { SharedValue } from 'react-native-reanimated';
+import PagerView from "react-native-pager-view";
+import { SharedValue } from "react-native-reanimated";
 
 export type ItemLayout = {
   x: number;
@@ -37,8 +37,18 @@ export type CollapsibleTabsContextValue = {
 
 const CollapsibleTabsContext = createContext({} as CollapsibleTabsContextValue);
 
-export const useCollapsibleTabsContext = () => useContext(CollapsibleTabsContext);
+export const useCollapsibleTabsContext = () =>
+  useContext(CollapsibleTabsContext);
 
-export const CollapsibleTabsContextProvider = memo(({ children, ...props }: CollapsibleTabsContextValue & { children: ReactNode }) => {
-  return <CollapsibleTabsContext.Provider value={props}>{children}</CollapsibleTabsContext.Provider>;
-});
+export const CollapsibleTabsContextProvider = memo(
+  ({
+    children,
+    ...props
+  }: CollapsibleTabsContextValue & { children: ReactNode }) => {
+    return (
+      <CollapsibleTabsContext.Provider value={props}>
+        {children}
+      </CollapsibleTabsContext.Provider>
+    );
+  },
+);

@@ -7,10 +7,7 @@ import {
 } from "@legendapp/list/react-native";
 import { LayoutChangeEvent, StyleSheet, View } from "react-native";
 
-import {
-  GestureDetector,
-  ScrollView as RNGHScrollView,
-} from "react-native-gesture-handler";
+import { GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   AnimatedProps,
   useAnimatedReaction,
