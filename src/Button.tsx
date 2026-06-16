@@ -44,6 +44,7 @@ export type ButtonProps = {
   contentWrapperStyle?: StyleProp<ViewStyle>;
   activeLabelColor?: string;
   inactiveLabelColor?: string;
+  variant?: "default" | "segment";
   children?: string | ((props: RenderTabLabelProps) => ReactNode);
 } & Omit<PressableProps, "style" | "children">;
 
@@ -61,6 +62,7 @@ const Button = ({
   contentWrapperStyle,
   activeLabelColor = "#111827",
   inactiveLabelColor = "#9ca3af",
+  variant = "default",
   ...props
 }: ButtonProps) => {
   const {
@@ -153,10 +155,20 @@ const Button = ({
       isFirst && { paddingLeft: 0 },
       isLast && { paddingRight: 0 },
       fullWidth && styles.fullWidth,
+      variant === "segment" && styles.segmentPressable,
       style,
       isActive && activeStyle,
     ],
-    [activeStyle, fullWidth, isActive, isFirst, isLast, style],
+    [activeStyle, fullWidth, isActive, isFirst, isLast, style, variant],
+  );
+
+  const mergedContentWrapperStyle = useMemo(
+    (): StyleProp<ViewStyle> => [
+      styles.contentWrapper,
+      variant === "segment" && styles.segmentContentWrapper,
+      contentWrapperStyle,
+    ],
+    [contentWrapperStyle, variant],
   );
 
   return (
@@ -166,10 +178,7 @@ const Button = ({
       onLayout={onLayout}
       style={mergedStyle}
     >
-      <View
-        onLayout={onContentLayout}
-        style={[styles.contentWrapper, contentWrapperStyle]}
-      >
+      <View onLayout={onContentLayout} style={mergedContentWrapperStyle}>
         {typeof children === "function" ? (
           children({
             isActive,
@@ -182,7 +191,7 @@ const Button = ({
         ) : (
           <Animated.Text
             style={[combinedStaticLabelStyle, animatedLabelStyle]}
-            numberOfLines={1}
+            numberOfLines={variant === "segment" ? undefined : 1}
             {...labelProps}
           >
             {children}
@@ -201,9 +210,20 @@ const styles = StyleSheet.create({
   fullWidth: {
     flex: 1,
   },
+  segmentPressable: {
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
   contentWrapper: {
     position: "relative",
     alignSelf: "center",
+  },
+  segmentContentWrapper: {
+    zIndex: 1,
+    width: "100%",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
   },
   label: {
     fontSize: 14,

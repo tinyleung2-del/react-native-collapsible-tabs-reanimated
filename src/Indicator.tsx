@@ -163,6 +163,7 @@ export const SegmentIndicator = memo(
 
     return (
       <Animated.View
+        pointerEvents="none"
         style={[
           styles.segment,
           { backgroundColor: color, borderRadius },
@@ -189,5 +190,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     zIndex: 0,
+    borderRadius: 999,
+    paddingVertical: 4,
   },
 });

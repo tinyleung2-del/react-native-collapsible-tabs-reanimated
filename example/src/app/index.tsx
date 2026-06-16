@@ -232,6 +232,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const frame = useSafeAreaFrame();
   const [refreshing, setRefreshing] = useState(false);
+  const [segmentBar, setSegmentBar] = useState(false);
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -247,6 +248,10 @@ export default function HomeScreen() {
       setRefreshing(false);
       refreshTimeoutRef.current = null;
     }, 1200);
+  }, []);
+
+  const toggleBarStyle = useCallback(() => {
+    setSegmentBar((value) => !value);
   }, []);
 
   const keyExtractor = useCallback(
@@ -368,73 +373,48 @@ export default function HomeScreen() {
                 <QuickNavButton key={label} index={i} label={label} />
               ))}
             </View>
+            <Pressable style={styles.barStyleToggle} onPress={toggleBarStyle}>
+              <Text style={styles.barStyleToggleText}>
+                {segmentBar ? "Use underline bar" : "Use segment-button bar"}
+              </Text>
+            </Pressable>
           </CollapsibleTabs.StaticHeader>
 
           <CollapsibleTabs.StickyHeader style={styles.stickyHeader}>
             <CollapsibleTabs.Bar
-              tabButtonsGap={12}
+              // fullWidth={false}
+              tabButtonsGap={segmentBar ? 4 : 12}
               scrollButtons
-              backgroundColor="#ffffff"
-              scrollContainerStyle={styles.tabBar}
+              // backgroundColor={segmentBar ? "#eef2ff" : "#ffffff"}
+              scrollContainerStyle={[
+                styles.tabBar,
+                segmentBar && styles.segmentTabBar,
+              ]}
             >
-              <CollapsibleTabs.Button
-                index={0}
-                name="Overview"
-                activeLabelColor="#101828"
-                inactiveLabelColor="#98a2b3"
-              >
-                Overview
-              </CollapsibleTabs.Button>
-              <CollapsibleTabs.Button
-                index={1}
-                name="Details"
-                activeLabelColor="#101828"
-                inactiveLabelColor="#98a2b3"
-              >
-                Details
-              </CollapsibleTabs.Button>
-              <CollapsibleTabs.Button
-                index={2}
-                name="Sticky"
-                activeLabelColor="#101828"
-                inactiveLabelColor="#98a2b3"
-              >
-                Sticky
-              </CollapsibleTabs.Button>
-              <CollapsibleTabs.Button
-                index={3}
-                name="FlashList"
-                activeLabelColor="#101828"
-                inactiveLabelColor="#98a2b3"
-              >
-                FlashList
-              </CollapsibleTabs.Button>
-              <CollapsibleTabs.Button
-                index={4}
-                name="LegendList"
-                activeLabelColor="#101828"
-                inactiveLabelColor="#98a2b3"
-              >
-                Legend
-              </CollapsibleTabs.Button>
-
-              <CollapsibleTabs.Button
-                index={5}
-                name="Placeholder"
-                activeLabelColor="#101828"
-                inactiveLabelColor="#98a2b3"
-              >
-                Placeholder
-              </CollapsibleTabs.Button>
-              <CollapsibleTabs.Button
-                index={6}
-                name="Refresh"
-                activeLabelColor="#101828"
-                inactiveLabelColor="#98a2b3"
-              >
-                Refresh
-              </CollapsibleTabs.Button>
-              <CollapsibleTabs.MaterialIndicator color="#2563eb" />
+              {segmentBar ? (
+                <CollapsibleTabs.SegmentIndicator
+                  color="#eef2ff"
+                  style={styles.segmentIndicator}
+                />
+              ) : null}
+              {TAB_LABELS.map((label, index) => (
+                <CollapsibleTabs.Button
+                  key={label}
+                  index={index}
+                  name={label === "Legend" ? "LegendList" : label}
+                  variant={segmentBar ? "segment" : "default"}
+                  activeLabelColor={segmentBar ? "#172554" : "#101828"}
+                  inactiveLabelColor={segmentBar ? "#475569" : "#98a2b3"}
+                  labelStyle={
+                    segmentBar ? styles.segmentButtonLabel : undefined
+                  }
+                >
+                  {label}
+                </CollapsibleTabs.Button>
+              ))}
+              {!segmentBar ? (
+                <CollapsibleTabs.MaterialIndicator color="#2563eb" />
+              ) : null}
             </CollapsibleTabs.Bar>
           </CollapsibleTabs.StickyHeader>
         </CollapsibleTabs.Header>
@@ -606,6 +586,21 @@ const styles = StyleSheet.create({
   quickNavTextActive: {
     color: "#93c5fd",
   },
+  barStyleToggle: {
+    alignSelf: "flex-start",
+    marginTop: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(147,197,253,0.5)",
+    backgroundColor: "rgba(15,23,42,0.32)",
+  },
+  barStyleToggleText: {
+    color: "#dbeafe",
+    fontSize: 13,
+    fontWeight: "800",
+  },
   eyebrow: {
     color: "#bfdbfe",
     fontSize: 12,
@@ -652,6 +647,30 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     paddingHorizontal: 12,
+  },
+  segmentTabBar: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  segmentButtonContent: {
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    borderRadius: 999,
+    zIndex: 1,
+  },
+  segmentButtonLabel: {
+    fontSize: 13,
+    lineHeight: 16,
+    flexShrink: 0,
+    paddingVertical: 0,
+    paddingHorizontal: 4,
+  },
+  segmentIndicator: {
+    // shadowColor: "#0f172a",
+    // shadowOpacity: 0.12,
+    // shadowRadius: 10,
+    // shadowOffset: { width: 0, height: 4 },
+    // elevation: 2,
   },
   scrollContent: {
     padding: 20,
