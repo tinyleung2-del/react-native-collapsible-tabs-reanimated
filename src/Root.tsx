@@ -146,6 +146,23 @@ const RootInner = memo(
         [stickyHeight],
       );
 
+      const revealHeaderOnListReachTop = useCallback(
+        (offsetY: number, velocityY: number) => {
+          "worklet";
+          velocityY = velocityY * 1000;
+          if (offsetY > 0 || velocityY <= 0) return;
+          if (headerOffset.value >= 0) return;
+
+          headerOffset.value = withSpring(0, {
+            damping: 100, // High damping prevents bouncing and smooths the stop
+            stiffness: Math.min(Math.abs(velocityY), 600), // Low stiffness makes the movement feel heavy and gradual
+            mass: 2, // Slightly higher mass gives it that "heavy content" inertia
+            overshootClamping: true, // CRITICAL: Stops the spring the millisecond it reaches the target
+          });
+        },
+        [headerOffset],
+      );
+
       const touchX = useSharedValue(0);
       const touchY = useSharedValue(0);
       const isVertical = useSharedValue(false);
@@ -268,6 +285,7 @@ const RootInner = memo(
           activeListOffset,
           updateStaticHeight,
           updateStickyHeight,
+          revealHeaderOnListReachTop,
         }),
         [
           activeListOffset,
@@ -287,6 +305,7 @@ const RootInner = memo(
           stickyHeightValue,
           updateStaticHeight,
           updateStickyHeight,
+          revealHeaderOnListReachTop,
         ],
       );
 

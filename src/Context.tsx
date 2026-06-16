@@ -33,6 +33,7 @@ export type CollapsibleTabsContextValue = {
   stickyHeightValue: number;
   updateStaticHeight: (height: number) => void;
   updateStickyHeight: (height: number) => void;
+  revealHeaderOnListReachTop: (offsetY: number, velocityY: number) => void;
 };
 
 const CollapsibleTabsContext = createContext({} as CollapsibleTabsContextValue);
