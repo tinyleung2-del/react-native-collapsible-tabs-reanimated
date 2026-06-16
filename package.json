@@ -1,6 +1,6 @@
 {
   "name": "react-native-collapsible-tabs-reanimated",
-  "version": "0.1.1",
+  "version": "0.2.0-beta",
   "description": "Collapsible tab views for React Native powered by Reanimated and Gesture Handler.",
   "source": "src/index.ts",
   "main": "lib/commonjs/index.js",
