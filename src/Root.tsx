@@ -25,9 +25,12 @@ import { scheduleOnRN } from "react-native-worklets";
 import {
   CollapsibleTabsContextProvider,
   CollapsibleTabsContextValue,
+  CollapsibleTabsRefreshContextProvider,
+  CollapsibleTabsRefreshContextValue,
   ItemLayout,
   ListScroller,
 } from "./Context";
+import { useStableCallback } from "./useStableCallback";
 
 export type CollapsibleTabsRootRef = {
   scrollToViewTop: (animated?: boolean) => void;
@@ -39,6 +42,11 @@ export type RootProps = {
   initialStaticHeight?: number;
   initialStickyHeight?: number;
   offsetAdjustment?: number;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+  refreshTriggerDistance?: number;
+  refreshHoldDistance?: number;
+  maxRefreshPullDistance?: number;
 };
 
 const DECELERATION = Platform.OS === "android" ? 0.985 : 0.998;
@@ -50,7 +58,12 @@ type RootInnerProps = Required<
     "initialStaticHeight" | "initialStickyHeight" | "offsetAdjustment"
   >
 > &
-  Pick<RootProps, "children" | "pageLength">;
+  Pick<RootProps, "children" | "pageLength" | "onRefresh"> & {
+    refreshing: boolean;
+    refreshTriggerDistance: number;
+    refreshHoldDistance: number;
+    maxRefreshPullDistance: number;
+  };
 
 const RootInner = memo(
   forwardRef<CollapsibleTabsRootRef, RootInnerProps>(
@@ -60,16 +73,102 @@ const RootInner = memo(
         initialStickyHeight,
         pageLength,
         offsetAdjustment,
+        refreshing,
+        onRefresh,
+        refreshTriggerDistance,
+        refreshHoldDistance,
+        maxRefreshPullDistance,
         children,
       },
       ref,
     ) => {
       const headerOffset = useSharedValue(0);
+      const refreshOffset = useSharedValue(0);
       const staticHeight = useSharedValue(initialStaticHeight);
       const stickyHeight = useSharedValue(initialStickyHeight);
       const offsetAdjustmentShared = useDerivedValue(
         () => offsetAdjustment,
         [offsetAdjustment],
+      );
+      const canRefresh = useDerivedValue(() => !!onRefresh, [onRefresh]);
+      const isRefreshing = useDerivedValue(() => refreshing, [refreshing]);
+      const refreshThreshold = useDerivedValue(
+        () => refreshTriggerDistance,
+        [refreshTriggerDistance],
+      );
+      const refreshHoldDistanceShared = useDerivedValue(
+        () => refreshHoldDistance,
+        [refreshHoldDistance],
+      );
+      const maxRefreshPullDistanceShared = useDerivedValue(
+        () => maxRefreshPullDistance,
+        [maxRefreshPullDistance],
+      );
+      const refreshProgress = useDerivedValue(
+        () => Math.min(refreshOffset.value / refreshThreshold.value, 1),
+        [refreshOffset, refreshThreshold],
+      );
+      const stableOnRefresh = useStableCallback(onRefresh);
+
+      const requestRefresh = useCallback(() => {
+        stableOnRefresh?.();
+      }, [stableOnRefresh]);
+
+      const updateRefreshPull = useCallback(
+        (pullDistance: number) => {
+          "worklet";
+          if (!canRefresh.value) return;
+          refreshOffset.value = Math.max(
+            0,
+            Math.min(pullDistance, maxRefreshPullDistanceShared.value),
+          );
+        },
+        [canRefresh, maxRefreshPullDistanceShared, refreshOffset],
+      );
+
+      const endRefreshPull = useCallback(() => {
+        "worklet";
+        if (!canRefresh.value || refreshOffset.value <= 0) return;
+
+        const shouldRefresh =
+          !isRefreshing.value && refreshOffset.value >= refreshThreshold.value;
+
+        if (shouldRefresh) {
+          refreshOffset.value = withSpring(refreshHoldDistanceShared.value, {
+            dampingRatio: 1,
+            mass: 4,
+          });
+          scheduleOnRN(requestRefresh);
+        } else if (isRefreshing.value) {
+          refreshOffset.value = withSpring(refreshHoldDistanceShared.value, {
+            dampingRatio: 1,
+            mass: 4,
+          });
+        } else {
+          refreshOffset.value = withSpring(0, {
+            dampingRatio: 1,
+            mass: 4,
+          });
+        }
+      }, [
+        canRefresh,
+        isRefreshing,
+        refreshHoldDistanceShared,
+        refreshOffset,
+        refreshThreshold,
+        requestRefresh,
+      ]);
+
+      useAnimatedReaction(
+        () => isRefreshing.value,
+        (value, prev) => {
+          if (value === prev) return;
+          refreshOffset.value = withSpring(
+            value ? refreshHoldDistanceShared.value : 0,
+            { dampingRatio: 1, mass: 4 },
+          );
+        },
+        [isRefreshing, refreshHoldDistanceShared],
       );
 
       const activeTabIndex = useSharedValue(0);
@@ -150,12 +249,13 @@ const RootInner = memo(
         (offsetY: number, velocityY: number) => {
           "worklet";
           velocityY = velocityY * 1000;
-          if (offsetY > 0 || velocityY <= 0) return;
+          // if (offsetY > 0 || velocityY <= 0) return;
+          if (offsetY > 0 || velocityY <= 3000) return;
           if (headerOffset.value >= 0) return;
 
           headerOffset.value = withSpring(0, {
             damping: 100, // High damping prevents bouncing and smooths the stop
-            stiffness: Math.min(Math.abs(velocityY), 600), // Low stiffness makes the movement feel heavy and gradual
+            stiffness: Math.min(velocityY / 10, 600), // Low stiffness makes the movement feel heavy and gradual
             mass: 2, // Slightly higher mass gives it that "heavy content" inertia
             overshootClamping: true, // CRITICAL: Stops the spring the millisecond it reaches the target
           });
@@ -309,9 +409,38 @@ const RootInner = memo(
         ],
       );
 
+      const refreshCtxValue = useMemo(
+        (): CollapsibleTabsRefreshContextValue => ({
+          refreshOffset,
+          refreshProgress,
+          refreshThreshold,
+          refreshHoldDistance: refreshHoldDistanceShared,
+          maxRefreshPullDistance: maxRefreshPullDistanceShared,
+          canRefresh,
+          isRefreshing,
+          updateRefreshPull,
+          endRefreshPull,
+          requestRefresh,
+        }),
+        [
+          canRefresh,
+          endRefreshPull,
+          isRefreshing,
+          maxRefreshPullDistanceShared,
+          refreshHoldDistanceShared,
+          refreshOffset,
+          refreshProgress,
+          refreshThreshold,
+          requestRefresh,
+          updateRefreshPull,
+        ],
+      );
+
       return (
         <CollapsibleTabsContextProvider {...ctxValue}>
-          {children}
+          <CollapsibleTabsRefreshContextProvider {...refreshCtxValue}>
+            {children}
+          </CollapsibleTabsRefreshContextProvider>
         </CollapsibleTabsContextProvider>
       );
     },
@@ -327,6 +456,11 @@ const Root = forwardRef<CollapsibleTabsRootRef, RootProps>((props, ref) => (
     initialStickyHeight={props.initialStickyHeight ?? 0}
     pageLength={props.pageLength}
     offsetAdjustment={props.offsetAdjustment ?? 0}
+    refreshing={props.refreshing ?? false}
+    onRefresh={props.onRefresh}
+    refreshTriggerDistance={props.refreshTriggerDistance ?? 72}
+    refreshHoldDistance={props.refreshHoldDistance ?? 56}
+    maxRefreshPullDistance={props.maxRefreshPullDistance ?? 140}
   >
     {props.children}
   </RootInner>

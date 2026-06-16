@@ -36,6 +36,19 @@ export type CollapsibleTabsContextValue = {
   revealHeaderOnListReachTop: (offsetY: number, velocityY: number) => void;
 };
 
+export type CollapsibleTabsRefreshContextValue = {
+  refreshOffset: SharedValue<number>;
+  refreshProgress: SharedValue<number>;
+  refreshThreshold: SharedValue<number>;
+  refreshHoldDistance: SharedValue<number>;
+  maxRefreshPullDistance: SharedValue<number>;
+  canRefresh: SharedValue<boolean>;
+  isRefreshing: SharedValue<boolean>;
+  updateRefreshPull: (pullDistance: number) => void;
+  endRefreshPull: () => void;
+  requestRefresh: () => void;
+};
+
 const CollapsibleTabsContext = createContext({} as CollapsibleTabsContextValue);
 
 export const useCollapsibleTabsContext = () =>
@@ -50,6 +63,26 @@ export const CollapsibleTabsContextProvider = memo(
       <CollapsibleTabsContext.Provider value={props}>
         {children}
       </CollapsibleTabsContext.Provider>
+    );
+  },
+);
+
+const CollapsibleTabsRefreshContext = createContext(
+  {} as CollapsibleTabsRefreshContextValue,
+);
+
+export const useCollapsibleTabsRefreshContext = () =>
+  useContext(CollapsibleTabsRefreshContext);
+
+export const CollapsibleTabsRefreshContextProvider = memo(
+  ({
+    children,
+    ...props
+  }: CollapsibleTabsRefreshContextValue & { children: ReactNode }) => {
+    return (
+      <CollapsibleTabsRefreshContext.Provider value={props}>
+        {children}
+      </CollapsibleTabsRefreshContext.Provider>
     );
   },
 );

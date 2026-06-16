@@ -13,7 +13,10 @@ import Tab from "./Tab";
 
 export { default as Bar } from "./Bar";
 export { default as Button } from "./Button";
-export { useCollapsibleTabsContext } from "./Context";
+export {
+  useCollapsibleTabsContext,
+  useCollapsibleTabsRefreshContext,
+} from "./Context";
 export { default as Header } from "./Header";
 export { MaterialIndicator, SegmentIndicator } from "./Indicator";
 export { Lazy } from "./Lazy";
@@ -29,10 +32,12 @@ export type { BarProps } from "./Bar";
 export type { ButtonProps, RenderTabLabelProps } from "./Button";
 export type {
   CollapsibleTabsContextValue,
+  CollapsibleTabsRefreshContextValue,
   ItemLayout,
   ListScroller,
 } from "./Context";
 export type { LazyPlaceholderInfo, LazyProps } from "./Lazy";
+export type { HeaderProps, HeaderRefreshControlInfo } from "./Header";
 export type { ListProps } from "./List";
 export type { PagerProps } from "./Pager";
 export type { CollapsibleTabsRootRef, RootProps } from "./Root";

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { LegendListRenderItemProps } from "@legendapp/list/react-native";
 import type { ListRenderItemInfo as FlashListRenderItemInfo } from "@shopify/flash-list";
@@ -6,8 +6,13 @@ import { StatusBar } from "expo-status-bar";
 import { Pressable } from "react-native-gesture-handler";
 import { ListRenderItemInfo, StyleSheet, Text, View } from "react-native";
 import CollapsibleTabs, {
+  HeaderRefreshControlInfo,
   useCollapsibleTabsContext,
 } from "react-native-collapsible-tabs-reanimated";
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 import { CollapsibleFlashList } from "react-native-collapsible-tabs-reanimated/flash-list";
 import { CollapsibleLegendList } from "react-native-collapsible-tabs-reanimated/legend-list";
 import {
@@ -15,7 +20,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-const TAB_COUNT = 6;
+const TAB_COUNT = 7;
 
 const TAB_LABELS = [
   "Overview",
@@ -24,7 +29,35 @@ const TAB_LABELS = [
   "FlashList",
   "Legend",
   "Placeholder",
+  "Refresh",
 ] as const;
+
+function RefreshIndicator({
+  refreshProgress,
+  refreshOffset,
+  isRefreshing,
+}: HeaderRefreshControlInfo) {
+  const animatedStyle = useAnimatedStyle(() => {
+    const progress = isRefreshing.value ? 1 : refreshProgress.value;
+    return {
+      opacity: interpolate(progress, [0, 0.25, 1], [0, 0.7, 1]),
+      transform: [
+        {
+          translateY: refreshOffset.value + 18,
+        },
+        {
+          scale: interpolate(progress, [0, 1], [0.75, 1]),
+        },
+      ],
+    };
+  }, []);
+
+  return (
+    <Animated.View style={[styles.refreshIndicator, animatedStyle]}>
+      <Text style={styles.refreshIndicatorText}>Pull to refresh</Text>
+    </Animated.View>
+  );
+}
 
 function QuickNavButton({ index, label }: { index: number; label: string }) {
   "use no memo";
@@ -198,6 +231,23 @@ const stickyHeaderIndices = stickyRecords.reduce<number[]>(
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const frame = useSafeAreaFrame();
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+    };
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+    refreshTimeoutRef.current = setTimeout(() => {
+      setRefreshing(false);
+      refreshTimeoutRef.current = null;
+    }, 1200);
+  }, []);
 
   const keyExtractor = useCallback(
     (_: string, index: number) => String(index),
@@ -296,8 +346,13 @@ export default function HomeScreen() {
         pageLength={TAB_COUNT}
         initialStaticHeight={272}
         initialStickyHeight={56}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
       >
-        <CollapsibleTabs.Header style={{ backgroundColor: "#172554" }}>
+        <CollapsibleTabs.Header
+          style={{ backgroundColor: "#172554" }}
+          renderRefreshControl={(info) => <RefreshIndicator {...info} />}
+        >
           <CollapsibleTabs.StaticHeader
             style={[styles.hero, { paddingBottom: insets.top }]}
           >
@@ -370,6 +425,14 @@ export default function HomeScreen() {
                 inactiveLabelColor="#98a2b3"
               >
                 Placeholder
+              </CollapsibleTabs.Button>
+              <CollapsibleTabs.Button
+                index={6}
+                name="Refresh"
+                activeLabelColor="#101828"
+                inactiveLabelColor="#98a2b3"
+              >
+                Refresh
               </CollapsibleTabs.Button>
               <CollapsibleTabs.MaterialIndicator color="#2563eb" />
             </CollapsibleTabs.Bar>
@@ -472,6 +535,33 @@ export default function HomeScreen() {
               ))}
             </CollapsibleTabs.ScrollView>
           </CollapsibleTabs.Tab>
+
+          <CollapsibleTabs.Tab index={6} lazy={false}>
+            <CollapsibleTabs.ScrollView
+              contentContainerStyle={styles.scrollContent}
+            >
+              <View style={styles.refreshDemoCard}>
+                <Text style={styles.refreshDemoTitle}>
+                  Custom pull to refresh
+                </Text>
+                <Text style={styles.refreshDemoText}>
+                  Pull down on the blue header when it is fully visible. The
+                  custom indicator is rendered through
+                  CollapsibleTabs.Header.renderRefreshControl and follows
+                  Reanimated shared values from the refresh context.
+                </Text>
+                <Text style={styles.refreshDemoStatus}>
+                  Status: {refreshing ? "Refreshing..." : "Ready"}
+                </Text>
+              </View>
+              {details.slice(0, 8).map((item, index) => (
+                <View key={item} style={styles.card}>
+                  <Text style={styles.cardTitle}>Refresh note {index + 1}</Text>
+                  <Text style={styles.cardText}>{item}</Text>
+                </View>
+              ))}
+            </CollapsibleTabs.ScrollView>
+          </CollapsibleTabs.Tab>
         </CollapsibleTabs.Pager>
       </CollapsibleTabs.Root>
     </View>
@@ -541,6 +631,25 @@ const styles = StyleSheet.create({
     borderBottomColor: "#d0d5dd",
     backgroundColor: "#ffffff",
   },
+  refreshIndicator: {
+    alignSelf: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.95)",
+    shadowColor: "#000000",
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  refreshIndicatorText: {
+    color: "#1d4ed8",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+  },
   tabBar: {
     paddingHorizontal: 12,
   },
@@ -572,6 +681,37 @@ const styles = StyleSheet.create({
     color: "#475467",
     fontSize: 15,
     lineHeight: 22,
+  },
+  refreshDemoCard: {
+    padding: 22,
+    borderRadius: 24,
+    backgroundColor: "#dbeafe",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+  },
+  refreshDemoTitle: {
+    color: "#172554",
+    fontSize: 22,
+    fontWeight: "900",
+    letterSpacing: -0.4,
+  },
+  refreshDemoText: {
+    marginTop: 10,
+    color: "#1e3a8a",
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  refreshDemoStatus: {
+    marginTop: 16,
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    overflow: "hidden",
+    backgroundColor: "#ffffff",
+    color: "#2563eb",
+    fontSize: 13,
+    fontWeight: "800",
   },
   panelHeader: {
     padding: 20,
