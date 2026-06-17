@@ -23,12 +23,11 @@ import {
 const TAB_COUNT = 7;
 
 const TAB_LABELS = [
-  "Overview",
-  "Details",
-  "Sticky",
+  "ScrollView",
+  "FlatList",
+  "FlatList-Sticky",
   "FlashList",
   "Legend",
-  "Placeholder",
   "Refresh",
 ] as const;
 
@@ -141,24 +140,7 @@ const overviewCards = [
   },
 ];
 
-const details = [
-  "Pull down at the top of a tab to reveal the full header.",
-  "Scroll up to collapse the static header and keep the tab bar pinned.",
-  "Swipe horizontally to switch tabs without losing each tab scroll offset.",
-  "The new component mirrors List defaults: no bounce, handled keyboard taps, and overflow disabled.",
-  "Both tabs below are backed by CollapsibleTabs.ScrollView.",
-  "Switch back to the overview tab after scrolling here to verify each tab restores its own offset.",
-  "Drag on the header itself to collapse or reveal it without starting from the scroll content.",
-  "Use short, composed content with ScrollView; use CollapsibleTabs.List for long virtualized datasets.",
-  "The tab indicator follows pager progress while the sticky header remains visible.",
-  "Try quick upward and downward flings to exercise the header decay and spring behavior.",
-  "The same collapsible root can mix ScrollView tabs and List tabs when needed.",
-  "This page intentionally has more rows so the collapsible interaction is easier to test.",
-  "All records are static demo data and can be replaced with real screen content.",
-  "The scroll views register a scroller with the root for active-tab scroll-to-top behavior.",
-  "The active tab offset is synchronized whenever the selected page changes.",
-  "Pager swipes should remain horizontal while vertical movement is handled by the scroll view and header.",
-];
+const details = ["short list"];
 
 const stickyRecords: StickyRecord[] = [
   { id: "basics", type: "header", title: "Basics" },
