@@ -13,9 +13,7 @@ Use this library when you need a screen with:
 
 ## Demo
 
-<video src="./demo/demo.mp4" controls width="360"></video>
-
-[View demo video](./demo/demo.mp4)
+![Demo](./demo/demo.gif)
 
 ## Installation
 
@@ -29,6 +27,19 @@ If you use an optional list adapter, install its peer dependency too:
 npm install @shopify/flash-list
 npm install @legendapp/list
 ```
+
+### Peer Dependency Versions
+
+| Package | Version |
+| --- | --- |
+| `react` | `>=18` |
+| `react-native` | `>=0.72` |
+| `react-native-reanimated` | `>=4.0.0` |
+| `react-native-gesture-handler` | `>=2.0.0` |
+| `react-native-pager-view` | `>=6.0.0` |
+| `react-native-worklets` | `>=0.6.0` |
+| `@shopify/flash-list` *(optional)* | `>=2.0.0` |
+| `@legendapp/list` *(optional)* | `>=3.0.0` |
 
 ## Required Setup
 
@@ -312,14 +323,30 @@ npm install @legendapp/list
 
 ## Imperative API
 
-Attach a ref to `Root` to scroll the active tab back to the top and reveal the header.
+Attach a ref to `Root` to programmatically control the tab view.
 
 ```tsx
 const ref = useRef<CollapsibleTabsRootRef>(null);
 
 <CollapsibleTabs.Root ref={ref} pageLength={2} />;
+```
 
-ref.current?.scrollToViewTop();
+### `scrollToViewTop(animated?)`
+
+Scrolls the active tab list back to the top and reveals the collapsed header.
+
+```tsx
+ref.current?.scrollToViewTop();        // animated (default)
+ref.current?.scrollToViewTop(false);   // instant
+```
+
+### `setPage(page, animated?)`
+
+Programmatically navigates to a tab by its zero-based index.
+
+```tsx
+ref.current?.setPage(1);        // switch to tab 1, animated (default)
+ref.current?.setPage(0, false); // switch to tab 0, no animation
 ```
 
 ## Example App
