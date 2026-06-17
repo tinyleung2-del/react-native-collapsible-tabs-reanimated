@@ -110,7 +110,7 @@ const Pager = ({
           ref={pagerRef}
           orientation="horizontal"
           overScrollMode="never"
-          style={[styles.flex1, style]}
+          style={[styles.pager, style]}
           onPageScroll={
             onPageScroll as unknown as PagerViewProps["onPageScroll"]
           }
@@ -128,6 +128,7 @@ Pager.displayName = "CollapsibleTabs.Pager";
 
 const styles = StyleSheet.create({
   flex1: { flex: 1 },
+  pager: { height: "100%" },
 });
 
 export default memo(Pager);

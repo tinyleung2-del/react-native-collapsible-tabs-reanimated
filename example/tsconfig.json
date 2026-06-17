@@ -7,6 +7,9 @@
       "react-native-collapsible-tabs-reanimated/flash-list": [
         "../src/flash-list.ts"
       ],
+      "react-native-collapsible-tabs-reanimated/legend-list": [
+        "../src/legend-list.ts"
+      ],
       "@/*": ["./src/*"]
     }
   },

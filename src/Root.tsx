@@ -11,9 +11,10 @@ import {
 
 import { Platform } from "react-native";
 
-import { Gesture, GestureType } from "react-native-gesture-handler";
+import { Gesture } from "react-native-gesture-handler";
 import PagerView from "react-native-pager-view";
 import {
+  cancelAnimation,
   useAnimatedReaction,
   useDerivedValue,
   useSharedValue,
@@ -34,6 +35,7 @@ import { useStableCallback } from "./useStableCallback";
 
 export type CollapsibleTabsRootRef = {
   scrollToViewTop: (animated?: boolean) => void;
+  setPage: (page: number, animated?: boolean) => void;
 };
 
 export type RootProps = {
@@ -206,16 +208,21 @@ const RootInner = memo(
         ref,
         () => ({
           scrollToViewTop: (animated = true) => {
-            const scroller = listScrollersRef.current.get(activeTabIndex.value);
+            const scroller = listScrollersRef.current.get(activeTabIndexValue);
             scroller?.(animated);
+
             headerOffset.value = withSpring(0, {
-              duration: 250,
+              duration: 300,
               dampingRatio: 1,
               mass: 4,
             });
           },
+          setPage: (page, animated = true) => {
+            if (animated) pagerRef.current?.setPage(page);
+            else pagerRef.current?.setPageWithoutAnimation(page);
+          },
         }),
-        [activeTabIndex, headerOffset],
+        [activeTabIndexValue, headerOffset],
       );
 
       const [staticHeightValue, setStaticHeightValue] =
@@ -250,8 +257,8 @@ const RootInner = memo(
           "worklet";
           velocityY = velocityY * 1000;
           // if (offsetY > 0 || velocityY <= 0) return;
-          if (offsetY > 0 || velocityY <= 3000) return;
-          if (headerOffset.value >= 0) return;
+          if (velocityY <= 3000) return;
+          // if (headerOffset.value >= 0) return;
 
           headerOffset.value = withSpring(0, {
             damping: 100, // High damping prevents bouncing and smooths the stop
@@ -268,7 +275,7 @@ const RootInner = memo(
       const isVertical = useSharedValue(false);
       const activeListOffset = useSharedValue(0);
 
-      const listPanGestureRef = useRef<GestureType | undefined>(undefined);
+      const listPanGestureRef = useRef<any>(undefined);
 
       const minOffset = useDerivedValue(
         () => -(staticHeight.value - offsetAdjustmentShared.value),
@@ -278,81 +285,95 @@ const RootInner = memo(
       const listGestures = useMemo(
         () =>
           Array.from({ length: pageLength }, () =>
-            Gesture.Native().simultaneousWithExternalGesture(listPanGestureRef),
+            Gesture.Native()
+              .onBegin(() => {
+                cancelAnimation(headerOffset);
+                cancelAnimation(refreshOffset);
+              })
+              .shouldCancelWhenOutside(false)
+              .disallowInterruption(true)
+              .simultaneousWithExternalGesture(listPanGestureRef),
           ),
         [pageLength],
       );
 
       const listPanGesture = useMemo(() => {
-        return Gesture.Pan()
-          .withRef(listPanGestureRef)
-          .manualActivation(true)
-          .maxPointers(1)
-          .minPointers(1)
-          .onTouchesDown((evt) => {
-            const touch = evt.allTouches[0];
-            touchX.value = touch.x;
-            touchY.value = touch.y;
-            isVertical.value = false;
-          })
-          .onTouchesMove((evt, state) => {
-            const touch = evt.allTouches[0];
-            const dx = touch.x - touchX.value;
-            const dy = touch.y - touchY.value;
+        return (
+          Gesture.Pan()
+            .withRef(listPanGestureRef)
+            .shouldCancelWhenOutside(false)
+            // .simultaneousWithExternalGesture(...listGestures)
+            .manualActivation(true)
+            .maxPointers(1)
+            .minPointers(1)
+            .onTouchesDown((evt) => {
+              const touch = evt.allTouches[0];
+              touchX.value = touch.x;
+              touchY.value = touch.y;
+              isVertical.value = false;
+            })
+            .onTouchesMove((evt, state) => {
+              const touch = evt.allTouches[0];
+              const dx = touch.x - touchX.value;
+              const dy = touch.y - touchY.value;
 
-            if (Math.abs(dy) > 5) isVertical.value = true;
-            if (Math.abs(dx) > 5 && !isVertical.value) return state.fail();
-            if (Math.abs(dy) <= 5) return;
+              if (Math.abs(dy) > 5) isVertical.value = true;
+              if (Math.abs(dx) > 5 && !isVertical.value) return state.fail();
+              if (Math.abs(dy) <= 5) return;
 
-            if (dy > 0 && activeListOffset.value <= 0) state.activate();
-            else if (dy < 0 && headerOffset.value > minOffset.value)
-              state.activate();
-          })
-          .onChange((evt) => {
-            isVertical.value = true;
-            const cur = headerOffset.value;
-            const next = cur + evt.changeY;
-            if (next > 0) {
-              if (cur !== 0) headerOffset.value = 0;
-            } else if (next < minOffset.value) {
-              if (cur !== minOffset.value) headerOffset.value = minOffset.value;
-            } else {
-              headerOffset.value = next;
-            }
-          })
-          .onEnd((evt) => {
-            const toTop = evt.translationY > 0;
-            const isPartial = headerOffset.value !== 0;
-            const min = minOffset.value;
-            const isFast = Math.abs(evt.velocityY) > 800;
-
-            if (isFast) {
-              if (toTop && isPartial) {
-                headerOffset.value = withSpring(0, {
-                  duration: 250,
-                  dampingRatio: 1,
-                  mass: 4,
-                  overshootClamping: false,
-                  velocity: evt.velocityY,
-                });
-              } else if (!toTop && isPartial) {
-                headerOffset.value = withSpring(min, {
-                  duration: 250,
-                  dampingRatio: 1,
-                  mass: 4,
-                  overshootClamping: false,
-                  velocity: evt.velocityY,
-                });
+              if (dy > 0 && activeListOffset.value <= 0) state.activate();
+              else if (dy < 0 && headerOffset.value > minOffset.value)
+                state.activate();
+            })
+            .onChange((evt) => {
+              isVertical.value = true;
+              const cur = headerOffset.value;
+              const next = cur + evt.changeY;
+              if (next > 0) {
+                if (cur !== 0) headerOffset.value = 0;
+              } else if (next < minOffset.value) {
+                if (cur !== minOffset.value)
+                  headerOffset.value = minOffset.value;
+              } else {
+                headerOffset.value = next;
               }
-            } else {
+            })
+            .onEnd((evt) => {
+              const toTop = evt.translationY > 0;
+              const min = minOffset.value;
+              const isPartial = headerOffset.value !== 0;
+
+              if (isPartial) {
+                if (toTop) {
+                  headerOffset.value = withSpring(0, {
+                    mass: 8,
+                    damping: 1000,
+                    stiffness: 2000,
+                    overshootClamping: false,
+                    velocity: evt.velocityY,
+                  });
+                  return;
+                } else {
+                  headerOffset.value = withSpring(min, {
+                    mass: 8,
+                    damping: 1000,
+                    stiffness: 2000,
+                    overshootClamping: false,
+                    velocity: evt.velocityY,
+                  });
+                  return;
+                }
+              }
+
               headerOffset.value = withDecay({
                 velocity: evt.velocityY,
+                velocityFactor: 10,
                 rubberBandEffect: false,
                 clamp: [min, 0],
                 deceleration: DECELERATION,
               });
-            }
-          });
+            })
+        );
         // NOTE: do NOT add .simultaneousWithExternalGesture(...listGestures) here.
         // Bidirectional simultaneous recognition on iOS causes the native scroll
         // and the pan gesture to fight over the same touch events, producing jitter.

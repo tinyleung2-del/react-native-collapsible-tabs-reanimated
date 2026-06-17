@@ -4,9 +4,10 @@ import { Platform, StyleSheet, ViewProps } from "react-native";
 
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  cancelAnimation,
   SharedValue,
-  clamp,
   useAnimatedStyle,
+  useDerivedValue,
   withDecay,
 } from "react-native-reanimated";
 
@@ -50,12 +51,21 @@ const Header = ({
     endRefreshPull,
   } = useCollapsibleTabsRefreshContext();
 
+  const minOffset = useDerivedValue(
+    () => -(staticHeight.value - offsetAdjustment.value),
+    [staticHeight, offsetAdjustment],
+  );
+
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
         .activeOffsetY([-5, 5])
         .failOffsetX([-5, 5])
         .maxPointers(1)
+        .onBegin(() => {
+          cancelAnimation(headerOffset);
+          cancelAnimation(refreshOffset);
+        })
         .onChange((evt) => {
           if (evt.changeY > 0 && headerOffset.value >= 0 && canRefresh.value) {
             updateRefreshPull(refreshOffset.value + evt.changeY);
@@ -67,11 +77,9 @@ const Header = ({
             return;
           }
 
-          const minOffset = -(staticHeight.value - offsetAdjustment.value);
-          headerOffset.value = clamp(
-            headerOffset.value + evt.changeY,
-            minOffset,
+          headerOffset.value = Math.min(
             0,
+            Math.max(headerOffset.value + evt.changeY, minOffset.value),
           );
         })
         .onEnd((evt) => {
@@ -80,11 +88,11 @@ const Header = ({
             return;
           }
 
-          const minOffset = -(staticHeight.value - offsetAdjustment.value);
           headerOffset.value = withDecay({
             velocity: evt.velocityY,
+            velocityFactor: 1.8,
             rubberBandEffect: false,
-            clamp: [minOffset, 0],
+            clamp: [minOffset.value, 0],
             deceleration: DECELERATION,
           });
         }),
@@ -112,7 +120,7 @@ const Header = ({
         collapsable={false}
       >
         {children}
-        {renderRefreshControl ? (
+        {!!renderRefreshControl && (
           <Animated.View pointerEvents="none" style={styles.refreshControl}>
             {renderRefreshControl({
               refreshOffset,
@@ -123,7 +131,7 @@ const Header = ({
               isRefreshing,
             })}
           </Animated.View>
-        ) : null}
+        )}
       </Animated.View>
     </GestureDetector>
   );

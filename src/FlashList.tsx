@@ -18,14 +18,13 @@ import Animated, {
   scrollTo,
   useAnimatedReaction,
   useAnimatedRef,
-  useAnimatedScrollHandler,
   useComposedEventHandler,
-  useSharedValue,
 } from "react-native-reanimated";
 
 import { ListScroller, useCollapsibleTabsContext } from "./Context";
 import { useTabSelfContext } from "./Tab";
 import { useStableCallback } from "./useStableCallback";
+import { useAnimatedScroller } from "./hooks";
 
 const AnimatedFlashList = Animated.createAnimatedComponent(
   ShopifyFlashList,
@@ -53,38 +52,11 @@ const CollapsibleFlashList = <T,>({
     activeTabIndex,
     activeListOffset,
     registerListScroller,
-    revealHeaderOnListReachTop,
   } = useCollapsibleTabsContext();
   const { index } = useTabSelfContext();
-  const selfOffset = useSharedValue(0);
-  const releaseVelocityY = useSharedValue(0);
   const listRef = useAnimatedRef<any>();
 
-  const onScroll = useAnimatedScrollHandler(
-    {
-      onScroll: (event) => {
-        selfOffset.value = event.contentOffset.y;
-        if (activeTabIndex.value === index)
-          activeListOffset.value = event.contentOffset.y;
-      },
-      onEndDrag: (event) => {
-        releaseVelocityY.value = event.velocity?.y ?? 0;
-
-        revealHeaderOnListReachTop(
-          event.contentOffset.y,
-          releaseVelocityY.value,
-        );
-      },
-      onMomentumEnd: (event) => {
-        revealHeaderOnListReachTop(
-          event.contentOffset.y,
-          releaseVelocityY.value,
-        );
-        releaseVelocityY.value = 0;
-      },
-    },
-    [revealHeaderOnListReachTop],
-  );
+  const { selfOffset, onScroll } = useAnimatedScroller(index);
 
   const composedScrollEvent = useComposedEventHandler(
     props.onScroll ? [onScroll, props.onScroll] : [onScroll],

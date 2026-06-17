@@ -80,19 +80,23 @@ const Bar = ({
   useAnimatedReaction(
     () => {
       if (!scrollButtons || layoutWidth.value === 0 || contentWidth.value === 0)
-        return { showLeft: false, showRight: false };
+        return 0;
       const maxScroll = contentWidth.value - layoutWidth.value;
       const isScrollable = maxScroll > 1;
-      return {
-        showLeft: isScrollable && scrollX.value > 10,
-        showRight: isScrollable && scrollX.value < maxScroll - 10,
-      };
+      let result = 0;
+      if (isScrollable && scrollX.value > 10) result |= 1;
+      if (isScrollable && scrollX.value < maxScroll - 10) result |= 2;
+      return result;
     },
-    (curr, prev) => {
-      if (curr.showLeft !== prev?.showLeft)
-        leftButtonOpacity.value = withTiming(curr.showLeft ? 1 : 0);
-      if (curr.showRight !== prev?.showRight)
-        rightButtonOpacity.value = withTiming(curr.showRight ? 1 : 0);
+    (value, prev) => {
+      const currLeft = !!(value & 1);
+      const currRight = !!(value & 2);
+      const prevLeft = prev != null && !!(prev & 1);
+      const prevRight = prev != null && !!(prev & 2);
+      if (currLeft !== prevLeft)
+        leftButtonOpacity.value = withTiming(currLeft ? 1 : 0);
+      if (currRight !== prevRight)
+        rightButtonOpacity.value = withTiming(currRight ? 1 : 0);
     },
     [scrollButtons],
   );
@@ -101,22 +105,19 @@ const Bar = ({
     scrollX.value = evt.contentOffset.x;
   });
 
-  const scrollByButton = useCallback(
-    (dir: "left" | "right") => {
-      "worklet";
-      const step = layoutWidth.value / 2;
-      const current = scrollX.value;
-      const target = dir === "left" ? current - step : current + step;
-      const maxScroll = contentWidth.value - layoutWidth.value;
-      scrollTo(
-        scrollRef,
-        Math.max(0, Math.min(target, maxScroll > 0 ? maxScroll : 0)),
-        0,
-        true,
-      );
-    },
-    [contentWidth, layoutWidth, scrollRef, scrollX],
-  );
+  const scrollByButton = useCallback((dir: "left" | "right") => {
+    "worklet";
+    const step = layoutWidth.value / 2;
+    const current = scrollX.value;
+    const target = dir === "left" ? current - step : current + step;
+    const maxScroll = contentWidth.value - layoutWidth.value;
+    scrollTo(
+      scrollRef,
+      Math.max(0, Math.min(target, maxScroll > 0 ? maxScroll : 0)),
+      0,
+      true,
+    );
+  }, []);
 
   const handlePress = useCallback(
     (dir: "left" | "right") => {
@@ -160,19 +161,13 @@ const Bar = ({
     [fullWidth, tabButtonsGap],
   );
 
-  const onContentSizeChange = useCallback(
-    (width: number) => {
-      contentWidth.value = width;
-    },
-    [contentWidth],
-  );
+  const onContentSizeChange = useCallback((width: number) => {
+    contentWidth.value = width;
+  }, []);
 
-  const onLayout = useCallback(
-    (evt: LayoutChangeEvent) => {
-      layoutWidth.value = evt.nativeEvent.layout.width;
-    },
-    [layoutWidth],
-  );
+  const onLayout = useCallback((evt: LayoutChangeEvent) => {
+    layoutWidth.value = evt.nativeEvent.layout.width;
+  }, []);
 
   const containerOnLayout = containerProps?.onLayout;
   const onContainerLayout = useCallback(
@@ -261,9 +256,13 @@ const ScrollButton = memo(
   }: ScrollButtonProps) => {
     const isLeft = dir === "left";
     const width = useSharedValue(0);
+    const containerStyle = isLeft
+      ? scrollButtonStyles.containerLeft
+      : scrollButtonStyles.containerRight;
 
     const animatedStyle = useAnimatedStyle(() => {
       const opacity = buttonProgress.value;
+      const translateSign = isLeft ? -1 : 1;
       return {
         opacity,
         transform: [
@@ -271,33 +270,25 @@ const ScrollButton = memo(
             translateX: interpolate(
               opacity,
               [0, 1],
-              [isLeft ? -width.value : width.value, 0],
+              [translateSign * width.value, 0],
             ),
           },
         ],
         pointerEvents: opacity === 0 ? "none" : "auto",
       };
-    }, [isLeft]);
+    });
 
-    const onLayoutButton = useCallback(
-      (evt: LayoutChangeEvent) => {
-        width.value = evt.nativeEvent.layout.width;
-      },
-      [width],
-    );
+    const onLayoutButton = useCallback((evt: LayoutChangeEvent) => {
+      width.value = evt.nativeEvent.layout.width;
+    }, []);
 
-    const onPress = useCallback(() => handlePress(dir), [dir, handlePress]);
+    const onPress = useCallback(() => handlePress(dir), [handlePress, dir]);
 
     return (
       <Animated.View
-        style={[
-          isLeft
-            ? scrollButtonStyles.containerLeft
-            : scrollButtonStyles.containerRight,
-          { backgroundColor },
-          animatedStyle,
-        ]}
+        style={[containerStyle, { backgroundColor }, animatedStyle]}
         onLayout={onLayoutButton}
+        collapsable={false}
       >
         <Pressable style={scrollButtonStyles.button} onPress={onPress}>
           {renderIcon ? (

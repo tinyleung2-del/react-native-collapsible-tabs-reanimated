@@ -52,32 +52,28 @@ export const MaterialIndicator = memo(
     }, [itemLayout]);
 
     const animatedStyles = useAnimatedStyle(() => {
+      const d = data.value;
       if (
-        data.value.input.length === 0 ||
-        data.value.width.length === 0 ||
-        data.value.translateX.length === 0
+        d.input.length === 0 ||
+        d.width.length === 0 ||
+        d.translateX.length === 0
       )
         return { opacity: 0, width: 0 };
-      if (data.value.input.length === 1)
+      if (d.input.length === 1)
         return {
           opacity: 1,
-          width: data.value.width[0],
-          transform: [{ translateX: data.value.translateX[0] }],
+          width: d.width[0],
+          transform: [{ translateX: d.translateX[0] }],
         };
       return {
         opacity: 1,
-        width: interpolate(
-          pageDecimal.value,
-          data.value.input,
-          data.value.width,
-          "clamp",
-        ),
+        width: interpolate(pageDecimal.value, d.input, d.width, "clamp"),
         transform: [
           {
             translateX: interpolate(
               pageDecimal.value,
-              data.value.input,
-              data.value.translateX,
+              d.input,
+              d.translateX,
               "clamp",
             ),
           },
@@ -87,6 +83,8 @@ export const MaterialIndicator = memo(
 
     return (
       <Animated.View
+        pointerEvents="none"
+        collapsable={false}
         style={[
           styles.indicator,
           { backgroundColor: color, borderRadius },
@@ -131,39 +129,41 @@ export const SegmentIndicator = memo(
     }, [itemLayout]);
 
     const animatedStyles = useAnimatedStyle(() => {
-      const input = data.value.input;
-      const width = data.value.width;
-      const translateX = data.value.translateX;
-      const height = data.value.height;
-      if (input.length === 0 || width.length === 0 || translateX.length === 0)
+      const d = data.value;
+      if (
+        d.input.length === 0 ||
+        d.width.length === 0 ||
+        d.translateX.length === 0
+      )
         return { opacity: 0, width: 0 };
-      if (input.length === 1)
+      if (d.input.length === 1)
         return {
           opacity: 1,
-          width: width[0],
-          transform: [{ translateX: translateX[0] }],
-          height: height[0],
+          width: d.width[0],
+          transform: [{ translateX: d.translateX[0] }],
+          height: d.height[0],
         };
       return {
         opacity: 1,
-        width: interpolate(pageDecimal.value, input, width, "clamp"),
+        width: interpolate(pageDecimal.value, d.input, d.width, "clamp"),
         transform: [
           {
             translateX: interpolate(
               pageDecimal.value,
-              input,
-              translateX,
+              d.input,
+              d.translateX,
               "clamp",
             ),
           },
         ],
-        height: height[0],
+        height: d.height[0],
       };
     }, []);
 
     return (
       <Animated.View
         pointerEvents="none"
+        collapsable={false}
         style={[
           styles.segment,
           { backgroundColor: color, borderRadius },
