@@ -45,13 +45,20 @@
     "format-check": "prettier --check src/",
     "clean": "rimraf lib"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "keywords": [
+    "react-native-component",
+    "react-component",
     "react-native",
-    "collapsible",
+    "ios",
+    "android",
+    "swipe",
     "tabs",
     "reanimated",
     "gesture-handler",
-    "pager-view"
+    "pager"
   ],
   "repository": {
     "type": "git",
